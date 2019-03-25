@@ -1,0 +1,35 @@
+{% extends 'main/user.html' %}
+{% load static %}
+{% load dictvalues %}
+
+{% block 'content' %}
+    {% if error is not None %}
+        <h2 class="error">{{error}}</h2>
+    {% else %}
+        <h2>Intégration d'un groupe de corporations</h2>
+        Rejoindre un groupe de corporations dans Hades9000 permet de mutualiser les données, d'accéder aux informations des autres corporations du groupe.
+        Cela nécéssite l'approbation d'un administrateur du groupe rejoint.
+        <h3>Intégration d'un groupe existant</h3>
+        <form method="POST" action="{% url 'joingroup' %}">
+            {% csrf_token %}
+            Quel groupe souhaitez vous intégrer ?<br />
+            <select name="group">
+            {% for group in groups %}
+                <option value="{{group.id}}">{{group.name}}</option>
+            {% endfor %}
+            </select><br />
+            <input type="submit" name="join" value="Envoyer une demande" />
+        </form>
+        <h3>Création d'un groupe</h3>
+        <form method="POST" action="{% url 'creategroup' %}">
+            {% csrf_token %}
+            <input type="text" name="name" placeholder="Nom du groupe" /><br />
+            <input type="text" name="discordlink" placeholder="Lien discord" /><br />
+            <input type="text" name="discordid" placeholder="ID du serveur discord" /><br />
+            <input type="checkbox" name="publicmembers" checked="checked" /> Rendre la liste des membres publique<br />
+            <input type="checkbox" name="publiclink" checked="checked" /> Rendre le lien Discord public<br />
+            <input type="checkbox" name="publicws" checked="checked" />Rendre la liste des étoiles blanches publique<br />
+            <input type="submit" name="create" value="Créer le groupe" />
+        </form>
+    {% endif %}
+{% endblock 'content' %}

@@ -1,0 +1,77 @@
+{% extends 'main/user.html' %}
+{% load static %}
+{% load dictvalues %}
+{% load timezone %}
+
+{% block 'content' %}
+    {% if error is not None %}
+        <h2 class="error">{{error}}</h2>
+    {% else %}
+        <h2>{{ws.name}}</h2>
+        <a href="{% url 'corporation' ws.corp.name %}">{{ws.corp.name}}</a> - {{ws.opponentcorp}}<br />
+        Score : <span style="color:#66AAFF">{{ws.score}}</span> - <span style="color:#FF5522">{{ws.opponentscore}}</span><br />
+        {{ws.start|localize:player.utcoffset}} - {{ws.end|localize:player.utcoffset}}<br />
+        État : {{wsstates|dictget:ws.state}}
+        {% if player.corp.id == ws.corp.id %}
+            <a href="{% url 'registerws' ws.id %}" class="editbutton">Inscription</a><br /><br /><br />
+            {% if player.admin %}
+                <a href="{% url 'editws' ws.id %}" class="editbutton">Modifier</a>
+            {% endif %}
+            <p class="comment">{{ws.comment}}</p>
+            {% for member in ws.members %}
+                <h4><a href="{% url 'wsmember' ws.id member.player.name %}">{{member.player.name}}</a></h4>
+                {% with stats=playerstats|dictget:forloop.counter0 %}
+                <table class="shiptable">
+                    <tr><td class="shiptablehcell">Nom</td><td class="shiptablehcell">Type</td><td class="shiptablehcell">Niv.</td><td class="shiptablehcell" colspan="{{maxmodnums|dictget:forloop.counter0}}">Modules</td></tr>
+    				{% for ship in ships|dictget:member.update.player.id %}
+    					<tr><td class="shiptablecell">{{ship.name}}</td>
+    						<td class="shiptablecell"><img src="{% static 'main/' %}{{ship.type}}{{stats.shiplevels|dictget:ship.type}}.png" alt="{{ship.type}}" class="ship" /></td>
+    						<td class="shiptablecell">{{stats.shiplevels|dictget:ship.type}}</td>
+    						{% for module in ship.trade %}
+    							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+    								{% if module != "module.trade.none" %}{{stats.getmodules|dictget:module}}{% endif %}</td>
+    						{% endfor %}
+    						{% for module in ship.mining %}
+    							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+    								{% if module != "module.mining.none" %}{{stats.getmodules|dictget:module}}{% endif %}</td>
+    						{% endfor %}
+    						{% for module in ship.weapon %}
+    							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+    								{% if module != "module.weapon.none" %}{{stats.getmodules|dictget:module}}{% endif %}</td>
+    						{% endfor %}
+    						{% for module in ship.shield %}
+    							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+    								{% if module != "module.shield.none" %}{{stats.getmodules|dictget:module}}{% endif %}</td>
+    						{% endfor %}
+    						{% for module in ship.support %}
+    							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+    								{% if module != "module.support.none" %}{{stats.getmodules|dictget:module}}{% endif %}</td>
+    						{% endfor %}
+    					</tr>
+    				{% endfor %}
+                </table>
+                {% endwith %}
+            {% endfor %}
+            {% if hasmembers %}
+                <h3>Disponibilité maximale</h3>
+                {% for day in days %}
+                    {% with dayindex=forloop.counter0 %}
+                    <div class="dispoday">
+                        <div class="priocase{{maxdispos|dictget:day|add:1}} priolabel">{{maxdispos|dictget:day|add:1}}</div>
+                        <p class="dispo_subtitle">{{day|dateformat}}</p>
+                    </div>
+                    {% endwith %}
+                {% endfor %}
+                <h3>Disponibilité moyenne</h3>
+                {% for day in days %}
+                    {% with dayindex=forloop.counter0 %}
+                    <div class="dispoday">
+                        <div class="priocase{{avgdispos|dictget:day|round|add:1}} priolabel">{{avgdispos|dictget:day|round|add:1}}</div>
+                        <p class="dispo_subtitle">{{day|dateformat}}</p>
+                    </div>
+                    {% endwith %}
+                {% endfor %}
+            {% endif %}
+        {% endif %}
+    {% endif %}
+{% endblock 'content' %}

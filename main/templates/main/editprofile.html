@@ -1,0 +1,114 @@
+{% extends 'main/user.html' %}
+{% load static %}
+{% load dictvalues %}
+
+
+{% block 'content' %}
+    {% if error %}
+        <h2 class="error">{{error}}</h2>
+    {% else %}
+        {% for warning in warnings %}
+            <h2 class="warning">{{warning}}</h2>
+        {% endfor %}
+        <form action="{% url 'updateprofile' %}" method="POST">
+            {% csrf_token %}
+            <input type="text" name="name" placeholder="Pseudo" value="{{player.name}}" /><br />
+            <input type="text" name="discordid" placeholder="ID Discord" value="{{player.discordid}}" disabled="disabled" /><br />
+            {% if player.pendingcorp is not None %}
+                <br /><input type="submit" name="changecorp" class="deletebutton" value="Confirmer le changement de corporation" /><br />
+            {% endif %}
+            {% if player.confirmed %}
+                <h4>Changer le mot de passe (optionnel)</h4>
+            {% else %}
+                <h4>Changer le mot de passe (obligatoire)</h4>
+            {% endif %}
+            <input type="password" name="oldpass" placeholder="Ancien mot de passe" /><br />
+            <input type="password" name="password" placeholder="Nouveau mot de passe" /><br />
+            <input type="password" name="passconfirm" placeholder="Confirmation du mot de passe" /><br />
+            <input type="checkbox" name="captain" {% if player.captain %}checked="checked"{% endif %} {% if not player.admin and not player.captain %}disabled{% endif %} />Capitaine<br />
+            <input type="checkbox" name="publicprofile" {% if player.publicprofile %}checked="checked"{% endif %} />Rendre le profil public<br />
+            Niveau d'XP : <input type="number" name="level" value="{{player.level}}" min="1" max="1000" /><br />
+            Influence : <input type="number" name="influence" value="{{player.influence}}" min="0" max="100000" /><br />
+            Niveau de RS : <input type="number" name="rslevel" value="{{player.rslevel}}" min="1" max="10" /><br />
+            Fuseau horaire : <select name="timezone">
+                {% for tz in timezones %}
+                    <option {% if player.timezone == tz %}selected="selected"{% endif %}>{{tz}}</option>
+                {% endfor %}
+            </select>
+
+            <table class="modtable"><tr>
+                {% for name in modules.trade %}{% if name != "module.trade.none" %}
+                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="10" value="{{player.getmodules|dictget:name}}" /></td>
+                {% endif %}{% endfor %}
+            </tr><tr>
+                {% for name in modules.mining %}{% if name != "module.mining.none" %}
+                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="10" value="{{player.getmodules|dictget:name}}" /></td>
+                {% endif %}{% endfor %}
+            </tr><tr>
+                {% for name in modules.weapon %}{% if name != "module.weapon.none" %}
+                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="10" value="{{player.getmodules|dictget:name}}" /></td>
+                {% endif %}{% endfor %}
+            </tr><tr>
+                {% for name in modules.shield %}{% if name != "module.shield.none" %}
+                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="10" value="{{player.getmodules|dictget:name}}" /></td>
+                {% endif %}{% endfor %}
+            </tr><tr>
+                {% for name in modules.support %}{% if name != "module.support.none" %}
+                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="10" value="{{player.getmodules|dictget:name}}" /></td>
+                {% endif %}{% endfor %}
+            </tr></table>
+            <h4>Vaisseaux</h4>
+            Niveau des cuirassés : <input type="number" name="bslevel" value="{{player.bslevel}}" min="1" max="5" /><br />
+            Niveau des foreurs : <input type="number" name="fslevel" value="{{player.fslevel}}" min="1" max="5" /><br />
+            Niveau des transports : <input type="number" name="tslevel" value="{{player.tslevel}}" min="1" max="5" /><br />
+            <table class="shiptable">
+                <tr><td class="shiptablehcell">Nom</td><td class="shiptablehcell">Type</td><td class="shiptablehcell">Supprimer</td><td class="shiptablehcell" colspan="{{maxmodnum}}">Modules</td></tr>
+                {% for ship in player.orderedships %}
+                    <tr><td class="shiptablecell"><input type="text" name="ship{{ship.id}}_name" value="{{ship.name}}" /></td>
+                        <td class="shiptablecell"><img src="{% static 'main/' %}{{ship.type}}{{player.shiplevels|dictget:ship.type}}.png" alt="{{ship.type}}" class="ship" /><input type="hidden" name="ship{{ship.id}}_type" value="{{ship.type}}" /></td>
+                        <td class="shiptablecell"><input type="submit" name="ship{{ship.id}}_delete" value="Supprimer" class="deletebutton" />
+                        {% for installed in ship.trade %}
+                            <td class="shiptablecell"><select name="ship{{ship.id}}_trade{{forloop.counter0}}">
+                                {% for module in modules.trade %}
+                                    <option value="{{module}}" {% if module == installed %}selected="selected"{% endif %}>{{modnames|dictget:module}}</option>
+                                {% endfor %}
+                            </select></td>
+                        {% endfor %}
+                        {% for installed in ship.mining %}
+                            <td class="shiptablecell"><select name="ship{{ship.id}}_mining{{forloop.counter0}}">
+                                {% for module in modules.mining %}
+                                    <option value="{{module}}" {% if module == installed %}selected="selected"{% endif %}>{{modnames|dictget:module}}</option>
+                                {% endfor %}
+                            </select></td>
+                        {% endfor %}
+                        {% for installed in ship.weapon %}
+                            <td class="shiptablecell"><select name="ship{{ship.id}}_weapon{{forloop.counter0}}">
+                                {% for module in modules.weapon %}
+                                    <option value="{{module}}" {% if module == installed %}selected="selected"{% endif %}>{{modnames|dictget:module}}</option>
+                                {% endfor %}
+                            </select></td>
+                        {% endfor %}
+                        {% for installed in ship.shield %}
+                            <td class="shiptablecell"><select name="ship{{ship.id}}_shield{{forloop.counter0}}">
+                                {% for module in modules.shield %}
+                                    <option value="{{module}}" {% if module == installed %}selected="selected"{% endif %}>{{modnames|dictget:module}}</option>
+                                {% endfor %}
+                            </select></td>
+                        {% endfor %}
+                        {% for installed in ship.support %}
+                            <td class="shiptablecell"><select name="ship{{ship.id}}_support{{forloop.counter0}}">
+                                {% for module in modules.support %}
+                                    <option value="{{module}}" {% if module == installed %}selected="selected"{% endif %}>{{modnames|dictget:module}}</option>
+                                {% endfor %}
+                            </select></td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+            <input type="submit" name="addbattleship" value="Ajouter un cuirassé" />
+            <input type="submit" name="addminer" value="Ajouter un foreur" />
+            <input type="submit" name="addtransport" value="Ajouter un transport" /><br />
+            <input type="submit" name="save" value="Enregistrer" />
+        </form>
+    {% endif %}
+{% endblock 'content' %}

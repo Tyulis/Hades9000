@@ -1,0 +1,288 @@
+a {
+	color: #557799;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #FF8800;
+	text-decoration: none;
+}
+
+#userbar {
+	background-color: #332277;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+}
+
+#username {
+	font-family: Arial, sans-serif;
+	font-size: 40px;
+	padding-left: 36px;
+	color: #AADDFF;
+}
+
+#logo {
+	width: 96px;
+	height: 96px;
+}
+
+#topnav {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	background-color: #334488;
+}
+
+.topnavlink {
+	padding: 8px 8px 8px 8px;
+	color: #AADDFF;
+	font-size: 20px;
+}
+
+.topnavlink:hover {
+	background-color: #774488;
+}
+
+.creatorname {
+	color: #6622FF;
+}
+
+.adminname {
+	color: #FF6622;
+}
+
+.captainname {
+	text-decoration: underline overline;
+	text-decoration-color: #FF6622;
+}
+
+.module {
+	width: 64px;
+	height: 56px;
+}
+
+.ship {
+	width: 32px;
+	height: auto;
+}
+
+.tooltip {
+	position: relative;
+	display: inline-block;
+}
+
+.tooltip .tooltiptext {
+	visibility: hidden;
+	background-color: #252221;
+	color: #EEEEEE;
+	text-align: center;
+	font-size: 16px;
+	font-weight: normal;
+	padding: 5px 0;
+	border-radius: 8px;
+	position: absolute;
+	width: 120px;
+	bottom: 100%;
+	left: 50%;
+	margin-left: -60px;
+	z-index: 1;
+}
+
+.tooltip .tooltiptext_right {
+	visibility: hidden;
+	background-color: #252221;
+	color: #EEEEEE;
+	font-size: 16px;
+	font-weight: normal;
+	padding: 5px 0;
+	border-radius: 8px;
+	position: absolute;
+	width: 720px;
+	bottom: 100%;
+	left: 100%;
+	padding-left: 8px;
+	margin-left: -60px;
+	z-index: 1;
+}
+
+
+.tooltip:hover .tooltiptext{
+	visibility: visible;
+}
+
+.tooltip:hover .tooltiptext_right{
+	visibility: visible;
+}
+
+.modtable {
+	border-collapse: collapse;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+.shiptablehcell {
+	border: solid 1px #888888;
+	background-color: #BBBBBB;
+}
+
+.shiptablecell {
+	border: solid 1px #AAAAAA;
+}
+
+.memberstablehcell {
+	border: solid 1px #888888;
+	background-color: #BBBBBB;
+}
+
+.memberstablecell {
+	border: solid 1px #AAAAAA;
+}
+
+.wstablehcell {
+	border: solid 1px #888888;
+	background-color: #BBBBBB;
+}
+
+.wstablecell {
+	border: solid 1px #AAAAAA;
+}
+
+.modtablecell {
+	border: solid 1px #AAAAAA;
+	font-size: 36px;
+	font-weight: lighter;
+}
+
+.editbutton {
+	float: right;
+	padding: 8px 8px 8px 8px;
+	color: #AADDFF;
+	background-color: #334488;
+	font-size: 24px;
+}
+
+.editbutton:hover {
+	background-color: #774488;
+}
+
+#memberdiv {
+	float: left;
+	padding: 12px;
+	border: solid #CCCCCC 5px;
+	border-radius: 12px;
+}
+
+#wsdiv {
+	float: left;
+	margin-left: 10%;
+	padding: 12px;
+	border: solid #CCCCCC 5px;
+	border-radius: 12px;
+}
+
+.deletebutton {
+	background-color: #FF2211;
+	color: #FFFFFF;
+}
+
+.rs1 {
+	color: #AA3300;
+}
+
+.rs2 {
+	color: #8899EE;
+}
+
+.rs3 {
+	color: #BB9911;
+}
+
+.rs4 {
+	color: #58B300;
+}
+
+.rs5 {
+	color: #FF4422;
+}
+
+.rs6 {
+	color: #33AAFF;
+}
+
+.rs7 {
+	color: #E020FF;
+};
+
+.rs8 {
+	color: #96A700;
+}
+
+.rs9 {
+	color: #CC2211;
+}
+
+.rs10 {
+	color: #44CC88;
+}
+
+.comment{
+	display: block;
+	background-color: #EEEEFF;
+	border-left: solid #775555 8px;
+	border-radius: 0px 12px 12px 0px;
+	padding: 4px 4px 4px 4px;
+	margin-bottom: 4px;
+	max-width: 60%;
+	padding-left: 24px;
+}
+
+.dispoday {
+	display: flex;
+	flex-direction: row;
+}
+
+.dispohour {
+	display: flex;
+	flex-direction: column;
+}
+
+.priocontain {
+	display: inline-block;
+}
+
+.priobutton {
+	display: none;
+}
+
+.priolabel {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	cursor: default;
+	padding-left: 24px;
+	padding-right: 24px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	border-left: solid black 2px;
+	border-right: solid black 2px;
+}
+
+.priobutton1:checked + .priolabel {background-color: #55AAFF;}
+.priobutton2:checked + .priolabel {background-color: #55FFAA;}
+.priobutton3:checked + .priolabel {background-color: #FFAA55;}
+.priobutton4:checked + .priolabel {background-color: #FF7711;}
+.priobutton5:checked + .priolabel {background-color: #FF3311;}
+.priobutton6:checked + .priolabel {background-color: #DDDDDD;}
+
+.priocase1 {background-color: #55AAFF;}
+.priocase2 {background-color: #55FFAA;}
+.priocase3 {background-color: #FFAA55;}
+.priocase4 {background-color: #FF7711;}
+.priocase5 {background-color: #FF3311;}
+.priocase6 {background-color: #DDDDDD;}

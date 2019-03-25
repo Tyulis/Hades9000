@@ -1,0 +1,74 @@
+{% extends 'main/user.html' %}
+{% load static %}
+{% load dictvalues %}
+{% load timezone %}
+
+{% block 'content' %}
+    {% if error is not None %}
+        <h2 class="error">{{error}}</h2>
+    {% else %}
+        <h2>Inscription à la WS</h2>
+        <h3>{{ws.name}}</h3>
+        <a href="{% url 'corporation' ws.corp.name %}">{{ws.corp.name}}</a> - {{ws.opponentcorp}}<br />
+        {{ws.start|localize:player.utcoffset}} - {{ws.end|localize:player.utcoffset}}<br />
+        <form action="{% url 'registeredws' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="wsid" value="{{ws.id}}" />
+            <span class="tooltip">Disponibilités
+            <span class="tooltiptext_right">
+                Niveaux de disponibilité : <br />
+                - 1 : Dispo presque en permanence, peut surveiller et avertir les autres presque à tout moment<br />
+                - 2 : Joignable et réactif presque à tout moment<br />
+                - 3 : Temps de réaction non négligeable<br />
+                - 4 : Incertain : On ne doit pas s'attendre à une réponse rapide<br />
+                - 5 : Indisponible<br />
+                - <i>6 : Non renseigné</i><br />
+            </span></span> :<br/><br />
+            {% for day in days %}
+                {% with dayindex=forloop.counter0 %}
+                {{day|dateformat}}<br />
+                <div class="dispoday">
+                    {% for prio in 6|times %}
+                        <input type="radio" name="dispo_{{day.day}}-{{day.month}}-{{day.year}}_{{day.hour}}" value="{{prio}}" id="dispo_{{day.day}}-{{day.month}}-{{day.year}}_{{day.hour}}_p{{prio}}" class="priobutton priobutton{{prio|add:1}}" {% if prio == dispos|dictget:day %}checked="checked"{% endif %}/>
+                        <label for="dispo_{{day.day}}-{{day.month}}-{{day.year}}_{{day.hour}}_p{{prio}}" class="priolabel priolabel{{prio|add:1}}">
+                            {{prio|add:1}}
+                        </label>
+                    {% endfor %}
+                </div>
+                {% endwith %}
+            {% endfor %}
+            <table class="shiptable">
+				<tr><td class="shiptablehcell">Nom</td><td class="shiptablehcell">Inscrire</td><td class="shiptablehcell">Type</td><td class="shiptablehcell">Niv.</td><td class="shiptablehcell" colspan="{{maxmodnum}}">Modules</td></tr>
+				{% for ship in player.orderedships %}
+					<tr><td class="shiptablecell">{{ship.name}}</td>
+                        <td class="shiptablecell"><input type="checkbox" name="ship{{ship.id}}_register" {% if ship.id in member.getships %}checked="checked"{% endif %} /></td>
+						<td class="shiptablecell"><img src="{% static 'main/' %}{{ship.type}}{{player.shiplevels|dictget:ship.type}}.png" alt="{{ship.type}}" class="ship" /></td>
+						<td class="shiptablecell">{{player.shiplevels|dictget:ship.type}}</td>
+						{% for module in ship.trade %}
+							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+								{% if module != "module.trade.none" %}{{player.getmodules|dictget:module}}{% endif %}</td>
+						{% endfor %}
+						{% for module in ship.mining %}
+							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+								{% if module != "module.mining.none" %}{{player.getmodules|dictget:module}}{% endif %}</td>
+						{% endfor %}
+						{% for module in ship.weapon %}
+							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+								{% if module != "module.weapon.none" %}{{player.getmodules|dictget:module}}{% endif %}</td>
+						{% endfor %}
+						{% for module in ship.shield %}
+							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+								{% if module != "module.shield.none" %}{{player.getmodules|dictget:module}}{% endif %}</td>
+						{% endfor %}
+						{% for module in ship.support %}
+							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+								{% if module != "module.support.none" %}{{player.getmodules|dictget:module}}{% endif %}</td>
+						{% endfor %}
+					</tr>
+				{% endfor %}
+			</table>
+            <input type="submit" name="confirm" value="Valider" /><input type="submit" name="cancel" value="Annuler" />
+            {% if ws.state == "ws.state.inscriptions" %}<input type="submit" name="quit" class="deletebutton" value="Annuler l'inscription" />{% endif %}
+        </form>
+    {% endif %}
+{% endblock 'content' %}

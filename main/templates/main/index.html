@@ -1,0 +1,15 @@
+{% extends 'main/base.html' %}
+
+{% block 'page' %}
+    <h1>Hades9000 vous salue. Merci de vous connecter.</h1>
+    {% if error is not None %}
+        <h2 class="error">{{error}}</h2>
+    {% endif %}
+    <form action="{% url 'login' %}" method="POST">
+        {% csrf_token %}
+        <input type="text" name="username" placeholder="Pseudo" />
+        <input type="password" name="password" />
+        <input type="submit" value="Connexion" />
+    </form>
+    <i>Pour créer votre compte, rejoignez une corporation utilisatrice de Hades9000 et demandez à un responsable sur discord de vous inscrire</i>
+{% endblock 'page' %}

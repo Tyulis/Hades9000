@@ -1,0 +1,36 @@
+{% extends 'main/user.html' %}
+{% load static %}
+{% load timezone %}
+{% load dictvalues %}
+
+{% block 'content' %}
+    {% if error is not None %}
+        <h2 class="error">{{error}}</h2>
+    {% else %}
+        <h2>Lancement d'une étoile blanche</h2>
+        <form action="{% url 'updatews' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="wsid" value="{{ws.id}}" />
+            Nom : <input type="text" name="name" value="{{ws.name}}" /><br />
+            Adversaires : <input type="text" name="opponentcorp" value="{{ws.opponentcorp}}" /><br />
+            Score : <input type="number" name="score" value="{{ws.score}}" min="0" max="999999" /><br />
+            Score des adversaires : <input type="number" name="opponentscore" value="{{ws.opponentscore}}" min="0" max="999999" /><br />
+            Début de la WS : <input type="date" name="startdate" value="{{ws.start|localize:player.utcoffset|formdate}}" /><input type="time" name="starttime" value="{{ws.start|localize:player.utcoffset|formtime}}"/><br />
+            Commentaire : <br />
+            <textarea name="comment" cols="50" rows="6">{{ws.comment}}</textarea><br />
+            Statut :
+            <select name="status">
+                {% for id, name in wsstates.items %}
+                    <option value="{{id}}" {% if ws.state == id %}selected="selected"{% endif %}>{{name}}</option>
+                {% endfor %}
+            </select><br />
+            <h3>Participants</h3>
+            <table class="memberstable">
+            {% for player in ws.players %}
+                <tr><td class="memberstablecell">{{player.name}}</td><td class="memberstablecell"><input type="submit" name="remove_{{player.id}}" class="deletebutton" value="Désinscrire" /></td></tr>
+            {% endfor %}
+            </table>
+            <input type="submit" name="update" value="Mettre à jour la WS"</input>
+        </form>
+    {% endif %}
+{% endblock 'content' %}

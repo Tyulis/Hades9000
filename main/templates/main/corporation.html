@@ -1,0 +1,55 @@
+{% extends 'main/user.html' %}
+{% load static %}
+{% load timezone %}
+
+{% block 'content' %}
+    {% if error is not None %}
+        <h2 class="error">{{error}}</h2>
+    {% else %}
+        <h1>{{corp.name}}</h1>
+        {% if corp.group.isgroup %}
+            Fait partie du groupe <a href="{% url 'group' corp.group.name %}">{{corp.group.name}}</a><br />
+        {% endif %}
+        {% if player.corp.id == corp.id and player.admin %}
+            <a href="{% url 'editcorp' %}" class="editbutton">Modifier</a><br /><br /><br />
+            <a href="{% url 'createws' %}" class="editbutton">Lancer une WS</a>
+        {% endif %}
+        {{corp.relics}} reliques &rarr; Niveau {{corp.level}}<br />
+        Influence : {{corp.influence}}<br />
+        {% if player.corp.id == corp.id or corp.publiclink %}
+            Discord : <a href="{{corp.discordlink}}">{{corp.discordlink}}</a><br />
+        {% endif %}
+        {% if player.corp.id == corp.id or corp.publicmembers %}
+        <div id="memberdiv">
+            <table class="memberstable">
+                <tr><td class="memberstablehcell">Niveau</td><td class="memberstablehcell">Nom</td><td class="memberstablehcell">Influence</td><td class="memberstablehcell">RS</td><td class="memberstablehcell">Admin</td><td class="memberstablehcell">Capitaine</td><td class="memberstablehcell">En WS</td></tr>
+                {% for member in corp.members %}
+                    <tr><td class="memberstablecell">{{member.level}}</td>
+                        <td class="memberstablecell"><a href="{% url 'user' member.name %}">{{member.name}}</a></td>
+                        <td class="memberstablecell">{{member.influence}}</td>
+                        <td class="memberstablecell rs{{member.rslevel}}">RS{{member.rslevel}}</td>
+                        <td class="memberstablecell">{{member.admin}}</td>
+                        <td class="memberstablecell">{{member.captain}}</td>
+                        <td class="memberstablecell">{{member.in_ws}}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
+        {% if player.corp.id == corp.id or corp.publicws %}
+        <div id="wsdiv">
+            <table class="wstable">
+                <tr><td class="wstablehcell">Nom</td><td class="wstablehcell">Adversaires</td><td class="wstablehcell">Score</td><td class="wstablehcell">Début</td><td class="wstablehcell">Fin</td></tr>
+                {% for ws in corp.wslist %}
+                    <tr><td class="wstablecell" style="background-color:{% if ws.score < ws.opponentscore %}#FF5522{% elif ws.score == ws.opponentscore %}#FFFF66{% else %}#66AAFF{% endif %}"><a href="{% url 'ws' ws.id %}">{{ws.name}}</a></td>
+                        <td class="wstablecell">{{ws.opponentcorp}}</td>
+                        <td class="wstablecell"><span style="color:#66AAFF">{{ws.score}}</span> - <span style="color:#FF5522">{{ws.opponentscore}}</span></td>
+                        <td class="wstablecell">{{ws.start|localize:player.utcoffset}}</td>
+                        <td class="wstablecell">{{ws.end|localize:player.utcoffset}}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
+    {% endif %}
+{% endblock 'content' %}

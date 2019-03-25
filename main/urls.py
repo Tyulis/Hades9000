@@ -1,0 +1,30 @@
+from django.urls import path
+from main import views
+
+urlpatterns = [
+    path(r'', views.home, name='home'),
+    path(r'login/', views.loginpage, name='login'),
+    path(r'logout/', views.logoutpage, name='logout'),
+    path(r'dashboard/', views.dashboard, name='dashboard'),
+    path(r'editprofile/', views.editprofile, name='editprofile'),
+    path(r'updateprofile/', views.updateprofile, name='updateprofile'),
+    path(r'user/<str:username>/', views.profile, name='user'),
+    path(r'user/<str:username>/<str:update>', views.profile, name='user'),
+    path(r'corporation/<str:corpname>/', views.corporation, name='corporation'),
+    path(r'editcorp/', views.editcorp, name='editcorp'),
+    path(r'updatecorp/', views.updatecorp, name='updatecorp'),
+    path(r'integrategroup/', views.integrategroup, name='integrategroup'),
+    path(r'joingroup/', views.joingroup, name='joingroup'),
+    path(r'creategroup/', views.creategroup, name='creategroup'),
+    path(r'group/<str:name>', views.group, name='group'),
+    path(r'editgroup/', views.editgroup, name='editgroup'),
+    path(r'updategroup/', views.updategroup, name='updategroup'),
+    path(r'ws/<int:wsid>/', views.whitestar, name='ws'),
+    path(r'ws/<int:wsid>/<str:username>', views.wsmember, name='wsmember'),
+    path(r'createws/', views.createws, name='createws'),
+    path(r'addws/', views.addws, name='addws'),
+    path(r'editws/<int:wsid>/', views.editws, name='editws'),
+    path(r'updatews/', views.updatews, name='updatews'),
+    path(r'registerws/<int:wsid>', views.registerws, name='registerws'),
+    path(r'registeredws/', views.registeredws, name='registeredws'),
+]

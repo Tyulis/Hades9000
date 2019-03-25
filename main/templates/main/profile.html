@@ -1,0 +1,78 @@
+{% extends 'main/user.html' %}
+{% load dictvalues %}
+{% load static %}
+
+{% block 'content' %}
+	{% if error is not None %}
+		<h2 class="error">{{error}}</h2>
+	{% elif user.publicprofile or user.corp.group.id == player.corp.group.id %}
+		<h1 class="{% if user.creator %}creatorname{% elif user.admin %}adminname{% endif %} {% if user.captain %}captainname{% endif %}">{{user.name}}</h1>
+		{% if user.id == player.id %}
+			<a href="/editprofile" class="editbutton">Modifier</a>
+		{% endif %}
+		<p id="stats">
+			Niveau : {{stats.level}}<br />
+			Influence : {{stats.influence}}<br />
+			Niveau RS : <span class="rs{{user.rslevel}}">RS{{stats.rslevel}}</span><br />
+			<br />
+			Corporation : <a href="/corporation/{{user.corp.name}}">{{user.corp.name}}</a><br />
+			Fuseau horaire : {{player.timezone}}, UTC+{{player.utcoffset}}<br />
+		</p>
+		{% if user.corp.group.id == player.corp.group.id %}
+			<table class="modtable"><tr>
+				{% for name in modules.trade %}{% if name != "module.trade.none" %}
+					<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" {% if stats.getmodules|dictget:name == 0 %}style="opacity:0.4;"{% endif %} alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><span {% if stats.getmodules|dictget:name == 0 %}style="color:#B4B4B4"{% endif %}>{{stats.getmodules|dictget:name}}</span></td>
+				{% endif %}{% endfor %}
+			</tr><tr>
+				{% for name in modules.mining %}{% if name != "module.mining.none" %}
+					<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" {% if stats.getmodules|dictget:name == 0 %}style="opacity:0.4;"{% endif %} alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><span {% if stats.getmodules|dictget:name == 0 %}style="color:#B4B4B4"{% endif %}>{{stats.getmodules|dictget:name}}</span></td>
+				{% endif %}{% endfor %}
+			</tr><tr>
+				{% for name in modules.weapon %}{% if name != "module.weapon.none" %}
+					<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" {% if stats.getmodules|dictget:name == 0 %}style="opacity:0.4;"{% endif %} alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><span {% if stats.getmodules|dictget:name == 0 %}style="color:#B4B4B4"{% endif %}>{{stats.getmodules|dictget:name}}</span></td>
+				{% endif %}{% endfor %}
+			</tr><tr>
+				{% for name in modules.shield %}{% if name != "module.shield.none" %}
+					<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" {% if stats.getmodules|dictget:name == 0 %}style="opacity:0.4;"{% endif %} alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><span {% if stats.getmodules|dictget:name == 0 %}style="color:#B4B4B4"{% endif %}>{{stats.getmodules|dictget:name}}</span></td>
+				{% endif %}{% endfor %}
+			</tr><tr>
+				{% for name in modules.support %}{% if name != "module.support.none" %}
+					<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" {% if stats.getmodules|dictget:name == 0 %}style="opacity:0.4;"{% endif %} alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><span {% if stats.getmodules|dictget:name == 0 %}style="color:#B4B4B4"{% endif %}>{{stats.getmodules|dictget:name}}</span></td>
+				{% endif %}{% endfor %}
+			</tr></table>
+			<br />
+			<br />
+			<table class="shiptable">
+				<tr><td class="shiptablehcell">Nom</td><td class="shiptablehcell">Type</td><td class="shiptablehcell">Niv.</td><td class="shiptablehcell" colspan="{{maxmodnum}}">Modules</td></tr>
+				{% for ship in stats.orderedships %}
+					<tr><td class="shiptablecell">{{ship.name}}</td>
+						<td class="shiptablecell"><img src="{% static 'main/' %}{{ship.type}}{{user.shiplevels|dictget:ship.type}}.png" alt="{{ship.type}}" class="ship" /></td>
+						<td class="shiptablecell">{{stats.shiplevels|dictget:ship.type}}</td>
+						{% for module in ship.trade %}
+							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+								{% if module != "module.trade.none" %}{{stats.getmodules|dictget:module}}{% endif %}</td>
+						{% endfor %}
+						{% for module in ship.mining %}
+							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+								{% if module != "module.mining.none" %}{{stats.getmodules|dictget:module}}{% endif %}</td>
+						{% endfor %}
+						{% for module in ship.weapon %}
+							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+								{% if module != "module.weapon.none" %}{{stats.getmodules|dictget:module}}{% endif %}</td>
+						{% endfor %}
+						{% for module in ship.shield %}
+							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+								{% if module != "module.shield.none" %}{{stats.getmodules|dictget:module}}{% endif %}</td>
+						{% endfor %}
+						{% for module in ship.support %}
+							<td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+								{% if module != "module.support.none" %}{{stats.getmodules|dictget:module}}{% endif %}</td>
+						{% endfor %}
+					</tr>
+				{% endfor %}
+			</table>
+		{% endif %}
+	{% else %}
+		<h2 class="error">Vous n'avez pas accès à ce profil</h2>
+	{% endif %}
+{% endblock 'content' %}

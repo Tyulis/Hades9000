@@ -1,0 +1,20 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block 'page' %}
+<header id="userbar_h">
+	<a href="{% url 'dashboard' %}" id="userbar">
+		<img src="{% static 'main/logo.png' %}" alt="Logo" id="logo" />
+		<h1 id="username">{{player.name}}</h1>
+	</a>
+</header>
+<nav id="topnav">
+	<a class="topnavlink" href="{% url 'dashboard' %}">Accueil</a>
+	<a class="topnavlink" href="{% url 'user' player.name %}">Profil</a>
+	{% if player.corp is not None %}
+		<a class="topnavlink" href="{% url 'corporation' player.corp.name %}">Corporation</a>
+	{% endif %}
+	<a class="topnavlink" href="{% url 'logout' %}">Déconnexion</a>
+</nav>
+{% block 'content' %}{% endblock 'content' %}
+{% endblock 'page' %}

@@ -1,0 +1,20 @@
+{% extends 'main/user.html' %}
+{% load static %}
+{% load dictvalues %}
+
+{% block 'content' %}
+    {% if error is not None %}
+        <h2 class="error">{{error}}</h2>
+    {% else %}
+        <h2>Lancement d'une étoile blanche</h2>
+        <form action="{% url 'addws' %}" method="POST">
+            {% csrf_token %}
+            Nom : <input type="text" name="name" /><br />
+            Lancement prévu : <input type="date" name="startdate" /><input type="time" name="starttime" /><br />
+            Commentaire : <br />
+            <textarea name="comment" cols="50" rows="6"></textarea><br />
+            <input type="checkbox" name="inscriptions" checked="checked" />Lancer les inscriptions<br />
+            <input type="submit" name="create" value="Créer la WS"</input>
+        </form>
+    {% endif %}
+{% endblock 'content' %}

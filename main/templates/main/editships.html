@@ -1,0 +1,26 @@
+{% extends 'main/user.html' %}
+{% load static %}
+{% load dictvalues %}
+
+{% block 'content' %}
+    {% if error is not None %}
+        <h2 class="error">{{error}}</h2>
+    {% else %}
+        <form action="{% url 'updateships' %}" method="POST">
+            <table class="shiptable">
+                <tr><td class="shiptablehcell">Nom</td><td class="shiptablehcell" colspan="{{bsmaxmodnum}}">Modules</td><td class="shiptablehcell">Supprimer</td></tr>
+                {% for ship in ships %}
+                    <tr><td class="shiptablecell"><input type="text" name="ship{{ship.id}}_name" placeholder="Nom" value="{{ship.name}}" /></td>
+                        {% for moduletype in ship.availablemodules %}
+                            <td class="shiptablecell"><select name="ship{{ship.id}}_module{{forloop.counter0}}">
+                                {% for module in modules|dictget:moduletype %}
+                                    <option name="{{module}}">{{modulenames|dictget:module}}</option>
+                                {% endfor %}
+                            </select></td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+        </form>
+    {% endif %}
+{% endblock 'content' %}

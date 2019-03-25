@@ -1,0 +1,53 @@
+{% extends 'main/user.html' %}
+{% load static %}
+{% load dictvalues %}
+{% load timezone %}
+
+{% block 'content' %}
+    {% if error is not None %}
+        <h2 class="error">{{error}}</h2>
+    {% else %}
+        <h2><a href="{% url 'user' member.player.name member.update.date|updatefmt %}">{{member.player.name}}</a></h2>
+        {% for day in days %}
+            {% with dayindex=forloop.counter0 %}
+            {{day|dateformat}}<br />
+            <div class="dispoday">
+                <div class="priocase{{dispos|dictget:hour|add:1}} priolabel">{{dispos|dictget:hour|add:1}}</div>
+                <p class="dispo_subtitle">{{day.day}}</p>
+            </div>
+            {% endwith %}
+        {% endfor %}
+        <br />
+        <table class="shiptable">
+            <tr><td class="shiptablehcell">Nom</td><td class="shiptablehcell">Type</td><td class="shiptablehcell">Niv.</td><td class="shiptablehcell" colspan="{{maxmodnum}}">Modules</td></tr>
+            {% for ship in member.update.orderedships %}
+                {% if ship.id in member.getships %}
+                    <tr><td class="shiptablecell">{{ship.name}}</td>
+                        <td class="shiptablecell"><img src="{% static 'main/' %}{{ship.type}}{{member.update.shiplevels|dictget:ship.type}}.png" alt="{{ship.type}}" class="ship" /></td>
+                        <td class="shiptablecell">{{member.update.shiplevels|dictget:ship.type}}</td>
+                        {% for module in ship.trade %}
+                            <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+                                {% if module != "module.trade.none" %}{{member.update.getmodules|dictget:module}}{% endif %}</td>
+                        {% endfor %}
+                        {% for module in ship.mining %}
+                            <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+                                {% if module != "module.mining.none" %}{{member.update.getmodules|dictget:module}}{% endif %}</td>
+                        {% endfor %}
+                        {% for module in ship.weapon %}
+                            <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+                                {% if module != "module.weapon.none" %}{{member.update.getmodules|dictget:module}}{% endif %}</td>
+                        {% endfor %}
+                        {% for module in ship.shield %}
+                            <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+                                {% if module != "module.shield.none" %}{{member.update.getmodules|dictget:module}}{% endif %}</td>
+                        {% endfor %}
+                        {% for module in ship.support %}
+                            <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{module}}.png" alt="{{module}}" class="module" /><span class="tooltiptext">{{modnames|dictget:module}}</span></div>
+                                {% if module != "module.support.none" %}{{member.update.getmodules|dictget:module}}{% endif %}</td>
+                        {% endfor %}
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
+    {% endif %}
+{% endblock 'content' %}
