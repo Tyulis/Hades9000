@@ -22,20 +22,20 @@ class cmd_setupgroup (Bot9000Command):
                 return
             except ObjectDoesNotExist:
                 pass
-            group = CorpGroup(name=arguments.name, language=arguments.language, discordid=message.server.id, isgroup=True)
-        adminrole = discord.utils.get(message.server.roles, name=arguments.role_admin)
+            group = CorpGroup(name=arguments.name, language=arguments.language, discordid=message.guild.id, isgroup=True)
+        adminrole = discord.utils.get(message.guild.roles, name=arguments.role_admin)
         if adminrole is None:
             await bot.send_message(message.channel, cls.string('bad_role', arguments.language) % arguments.role_admin)
             return
-        resporole = discord.utils.get(message.server.roles, name=arguments.role_responsible)
+        resporole = discord.utils.get(message.guild.roles, name=arguments.role_responsible)
         if resporole is None:
             await bot.send_message(message.channel, cls.string('bad_role', arguments.language) % arguments.role_responsible)
             return
-        modorole = discord.utils.get(message.server.roles, name=arguments.role_moderator)
+        modorole = discord.utils.get(message.guild.roles, name=arguments.role_moderator)
         if modorole is None:
             await bot.send_message(message.channel, cls.string('bad_role', arguments.language) % arguments.role_moderator)
             return
-        memberrole = discord.utils.get(message.server.roles, name=arguments.role_member)
+        memberrole = discord.utils.get(message.guild.roles, name=arguments.role_member)
         if memberrole is None:
             await bot.send_message(message.channel, cls.string('bad_role', arguments.language) % arguments.role_member)
             return
@@ -44,7 +44,7 @@ class cmd_setupgroup (Bot9000Command):
         group.modorole = modorole.id
         group.memberrole = memberrole.id
         group.save()
-        corps = Corporation.objects.filter(group__discordid=message.server.id)
+        corps = Corporation.objects.filter(group__discordid=message.guild.id)
         for corp in corps:
             corp.group = group
             corp.save()
@@ -85,22 +85,22 @@ class cmd_setupcorp (Bot9000Command):
                 await bot.send_message(message.channel, cls.string('defaulting_group', language))
         else:
             if language is not None:
-                group = CorpGroup(name=arguments.name, language=arguments.language, discordid=message.server.id, isgroup=False)
+                group = CorpGroup(name=arguments.name, language=arguments.language, discordid=message.guild.id, isgroup=False)
             else:
-                group = CorpGroup(name=arguments.name, language='FR', discordid=discord.server.id, isgroup=False)
-            adminrole = discord.utils.get(message.server.roles, name=arguments.role_admin)
+                group = CorpGroup(name=arguments.name, language='FR', discordid=discord.guild.id, isgroup=False)
+            adminrole = discord.utils.get(message.guild.roles, name=arguments.role_admin)
             if adminrole is None:
                 await bot.send_message(message.channel, cls.string('bad_role', group.language) % arguments.role_admin)
                 return
-            resporole = discord.utils.get(message.server.roles, name=arguments.role_responsible)
+            resporole = discord.utils.get(message.guild.roles, name=arguments.role_responsible)
             if resporole is None:
                 await bot.send_message(message.channel, cls.string('bad_role', group.language) % arguments.role_responsible)
                 return
-            modorole = discord.utils.get(message.server.roles, name=arguments.role_moderator)
+            modorole = discord.utils.get(message.guild.roles, name=arguments.role_moderator)
             if modorole is None:
                 await bot.send_message(message.channel, cls.string('bad_role', group.language) % arguments.role_moderator)
                 return
-            memberrole = discord.utils.get(message.server.roles, name=arguments.role_member)
+            memberrole = discord.utils.get(message.guild.roles, name=arguments.role_member)
             if memberrole is None:
                 await bot.send_message(message.channel, cls.string('bad_role', group.language) % arguments.role_member)
                 return
@@ -110,15 +110,15 @@ class cmd_setupcorp (Bot9000Command):
             group.memberrole = memberrole.id
             group.save()
             corp.group = group
-        corprole = discord.utils.get(message.server.roles, name=arguments.role_member)
+        corprole = discord.utils.get(message.guild.roles, name=arguments.role_member)
         if corprole is None:
             await bot.send_message(message.channel, cls.string('bad_role', group.language) % arguments.role_member)
             return
-        wsrole = discord.utils.get(message.server.roles, name=arguments.role_ws)
+        wsrole = discord.utils.get(message.guild.roles, name=arguments.role_ws)
         if wsrole is None:
             await bot.send_message(message.channel, cls.string('bad_role', group.language) % arguments.role_ws)
             return
-        leadrole = discord.utils.get(message.server.roles, name=arguments.role_lead)
+        leadrole = discord.utils.get(message.guild.roles, name=arguments.role_lead)
         if leadrole is None:
             await bot.send_message(message.channel, cls.string('bad_role', group.language) % arguments.role_lead)
             return
@@ -161,7 +161,7 @@ class cmd_register (Bot9000Command):
                 await bot.send_message(message.channel, cls.string('choose_corp', language))
                 return
 
-        discorduser = bot.get_member(arguments.name, message.server)
+        discorduser = bot.get_member(arguments.name, message.guild)
         if discorduser is None:
             await bot.send_message(message.channel, cls.string('username_not_found', language) % arguments.name)
             return
@@ -178,11 +178,11 @@ class cmd_register (Bot9000Command):
             await bot.send_message(message.channel, cls.string('unknown_corp', language) % corpname)
             return
 
-        adminrole = discord.utils.get(message.server.roles, id=group.adminrole)
-        resporole = discord.utils.get(message.server.roles, id=group.resporole)
-        modorole = discord.utils.get(message.server.roles, id=group.modorole)
-        memberrole = discord.utils.get(message.server.roles, id=group.memberrole)
-        corprole = discord.utils.get(message.server.roles, id=corp.memberrole)
+        adminrole = discord.utils.get(message.guild.roles, id=group.adminrole)
+        resporole = discord.utils.get(message.guild.roles, id=group.resporole)
+        modorole = discord.utils.get(message.guild.roles, id=group.modorole)
+        memberrole = discord.utils.get(message.guild.roles, id=group.memberrole)
+        corprole = discord.utils.get(message.guild.roles, id=corp.memberrole)
         await bot.add_roles(discorduser, memberrole, corprole)
         try:
             player = Player.objects.get(name=username)
@@ -195,7 +195,7 @@ class cmd_register (Bot9000Command):
             player.save()
             if player.corp is not None:
                 if player.corp.group == corp.group:
-                    oldcorprole = discord.utils.get(message.server.roles, id=player.corp.memberrole)
+                    oldcorprole = discord.utils.get(message.guild.roles, id=player.corp.memberrole)
                     await bot.remove_roles(discorduser, oldcorprole)
                     await bot.send_message(message.channel, cls.string('replace_switch', language) % (corp.name, username))
             await bot.send_message(discorduser, cls.string('instructions_move', language) % (username, corp.name, bot.make_url('editprofile')))

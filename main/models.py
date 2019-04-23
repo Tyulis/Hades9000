@@ -11,27 +11,29 @@ from .data import *
 class CorpGroup (models.Model):
 	name = models.CharField(max_length=150)
 	discordlink = models.CharField(max_length=150, null=True)
-	discordid = models.CharField(max_length=120, null=True)
+	discordid = models.IntegerField(null=True)
 	publiclink = models.BooleanField(default=True)
 	publicws = models.BooleanField(default=True)
 	publicmembers = models.BooleanField(default=True)
 	isgroup = models.BooleanField(default=False)
 
 	notifications = models.BooleanField(default=False)
-	notifchannel = models.CharField(null=True, default='', max_length=120)
-	managementchannel = models.CharField(null=True, default='', max_length=120)
+	notifchannel = models.IntegerField(null=True)
+	managementchannel = models.IntegerField(null=True)
 	language = models.CharField(default='FR', max_length=2)
 
-	adminrole = models.CharField(max_length=120, null=True)
-	resporole = models.CharField(max_length=120, null=True)
-	modorole = models.CharField(max_length=120, null=True)
-	memberrole = models.CharField(max_length=120, null=True)
+	adminrole = models.IntegerField(null=True)
+	resporole = models.IntegerField(null=True)
+	modorole = models.IntegerField(null=True)
+	memberrole = models.IntegerField(null=True)
 
 	commandmodules = models.TextField(default='["help", "account"]')
 	enable_welcome = models.BooleanField(default=False)
 	enable_leavenotif = models.BooleanField(default=False)
 	private_welcome = models.BooleanField(default=True)
 	welcome = models.TextField(default='')
+
+	custom_commands = models.TextField(default='{}')
 
 
 	def corporations(self):
@@ -53,6 +55,12 @@ class CorpGroup (models.Model):
 	def setcommandmods(self, modules):
 		self.commandmodules = json.dumps(modules)
 
+	def getcustomcommands(self):
+		return json.loads(self.custom_commands)
+
+	def setcustomcommands(self, commands):
+		self.custom_commands = json.dumps(commands)
+
 	def __str__(self):
 		return 'CorpGroup %s' % self.name
 
@@ -61,9 +69,9 @@ class Corporation (models.Model):
 	relics = models.IntegerField(default=0)
 	group = models.ForeignKey(CorpGroup, on_delete=models.SET_NULL, null=True)
 
-	memberrole = models.CharField(max_length=120, null=True)
-	wsrole = models.CharField(max_length=120, null=True)
-	leadrole = models.CharField(max_length=120, null=True)
+	memberrole = models.IntegerField(null=True)
+	wsrole = models.IntegerField(null=True)
+	leadrole = models.IntegerField(null=True)
 
 	def influence(self):
 		result = 0
@@ -112,7 +120,7 @@ class Corporation (models.Model):
 
 class Player (models.Model):
 	name = models.CharField(max_length=150)
-	discordid = models.CharField(max_length=100)
+	discordid = models.IntegerField(default=-1)
 	corp = models.ForeignKey(Corporation, on_delete=models.SET_NULL, null=True, related_name='corp')
 	pendingcorp = models.ForeignKey(Corporation, on_delete=models.SET_NULL, null=True, default=None)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -125,6 +133,7 @@ class Player (models.Model):
 	language = models.CharField(max_length=2, default='FR')
 	confirmed = models.BooleanField(default=False)
 	pendingroles = models.TextField(default='[false, false, false]')
+	rsready = models.BooleanField(default=False)
 
 	def stats(self, date=None):
 		if date is None:
@@ -385,10 +394,25 @@ class WSPlayer (models.Model):
 		return 'WS Player %s in %s' % (self.player().name, self.ws)
 
 
+class RedStar (models.Model):
+	group = models.ForeignKey(CorpGroup, on_delete=models.CASCADE)
+	player1 = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, related_name='player1')
+	player2 = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, related_name='player2')
+	player3 = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, related_name='player3')
+	player4 = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, related_name='player4')
+	level = models.IntegerField(default=1)
+
+	def players(self):
+		return [player for player in (self.player1, self.player2, self.player3, self.player4) if player is not None]
+
+	def __str__(self):
+		return 'RS%d in %s' % (self.level, self.group.name)
+
 
 admin.site.register(CorpGroup)
 admin.site.register(Corporation)
 admin.site.register(Player)
 admin.site.register(PlayerUpdate)
-admin.site.register(WS)
 admin.site.register(WSPlayer)
+admin.site.register(WS)
+admin.site.register(RedStar)

@@ -126,6 +126,7 @@ class cmd_wsinfo (Bot9000Command):
         start = ws.start.astimezone(player.tzinfo()).strftime('%d/%m/%Y - %H:%M')
         end = ws.end().astimezone(player.tzinfo()).strftime('%d/%m/%Y - %H:%M')
         response += cls.string('dates', player.language) % (start, end)
+        response += cls.string('state', player.language) % ws_states[ws.state]
         if ws.corp.group == group:
             totalscore = 0
             for wsplayer in ws.members():
@@ -154,8 +155,65 @@ class cmd_wsinfo (Bot9000Command):
             'introduction': '**__WS n°%d__**\n',
             'corps': '**%s** %d - %d **%s**\n',
             'dates': 'De *%s* à *%s*\n',
+            'state': 'État : %s\n',
             'player_intro': '\n**__%s__** : *%d pts WS*\n',
             'ship': '__%s__ (%s): %s\n',
             'totalstats': '\n*Score WS total : %d pts*',
+        }
+    }
+
+
+class cmd_wsregister (Bot9000Command):
+    name = 'wsregister'
+    minimum_role = 'member'
+    arguments = ('wsid', ',ships')
+    parser = None
+
+    @classmethod
+    async def run(cls, message, arguments, group, player, bot):
+        if not arguments.wsid.isdigit():
+            await bot.send_message(message.channel, cls.string('bad_wsid', player.language) % arguments.wsid)
+            return
+        wsid = int(arguments.wsid)
+        print(arguments.ships)
+        if not all(map(str.isdigit, arguments.ships)):
+            await bot.message(message.channel, cls.string('bad_shipid', player.language))
+            return
+        shipids = tuple(map(int, arguments.ships))
+        try:
+            ws = WS.objects.get(id=wsid)
+            if ws.corp.group != group:
+                await bot.send_message(message.channel, cls.string('foreign_ws', player.language) % wsid)
+                return
+        except ObjectDoesNotExist:
+            await bot.send_message(message.channel, cls.string('unknown_ws', player.language) % wsid)
+            return
+        try:
+            wsmember = WSPlayer.objects.get(update__player=player)
+            if ws.state in ('ws.state.future', 'ws.state.ended'):
+                await bot.send_message(message.channel, cls.string('forbidden_edit', player.language))
+                return
+        except ObjectDoesNotExist:
+            if ws.state != 'ws.state.inscriptions':
+                await bot.send_message(message.channel, cls.string('inscriptions_closed', player.language))
+                return
+            wsmember = WSPlayer(ws=ws)
+        wsmember.ws = ws
+        wsmember.initdispos(start=ws.start)
+        wsmember.setships(shipids)
+        wsmember.save()
+        await bot.send_message(message.channel, cls.string('done', player.language) % wsid)
+
+    strings = {
+        'FR': {
+            'help': '**$wsregister <ws-id> <ship-id> [<ship-id> ...]** : Inscrit pour la WS sélectionnée (ID donné par `$wslist`), avec les vaisseaux sélectionnés (IDs donnés par `$ships`)',
+            'description': 'Inscrit à une WS',
+            'bad_wsid': '"%s" n\'est pas un ID de WS valide. Vous pouvez récupérer les IDs de WS avec la commande `$wslist`',
+            'bad_shipid': 'Les IDs de vaisseaux doivent être des nombres, utilisez `$ships` pour les voir',
+            'foreign_ws': 'La WS n°%d n\'est pas dans ce groupe. Utilisez `$wslist` pour voir les IDs de WS',
+            'unknown_ws': 'La WS n°%d est inconnue. Utilisez `$wslist` pour voir les IDs de WS',
+            'forbidden_edit': 'Vous ne pouvez pas modifier votre inscription à cette WS',
+            'inscriptions_closed': 'Les inscriptions à cette WS sont fermées',
+            'done': 'Votre inscription à la WS n°%d a bien été enregistrée !',
         }
     }

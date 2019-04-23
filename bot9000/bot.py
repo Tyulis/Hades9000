@@ -9,6 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from .commands import COMMANDS
 from .commands.base import ArgumentError
+from .custom.runner import CustomCommandRunner
 
 SITE_URL = 'http://localhost:8000/'
 roles_ids = ('anyone', 'member', 'moderator', 'responsible', 'admin')
@@ -22,17 +23,26 @@ class Hades9000Bot (discord.Client):
 
     async def on_ready(self):
         print('Ready, initializing...')
+        self.customcmds = {}
         for group in CorpGroup.objects.all():
             print('Setting up group %s' % group.name)
-            if group.notifications:
-                await self.send_notification(group, self.string('online_notification', group.language))
+            await self.setup_group(group)
         print('Let\'s go !')
+
+    async def setup_group(self, group):
+        cmds = group.getcustomcommands()
+        for cmdname, cmd in cmds.items():
+            print(cmd)
+            cmd['runner'] = CustomCommandRunner(cmdname, cmd['minimum_role'], cmd['arguments'], cmd['code'], group)
+        self.customcmds[group.id] = cmds
+        if group.notifications:
+            await self.send_notification(group, self.string('online_notification', group.language))
 
     async def on_message(self, message):
         if message.author == self.user:
             return
         if message.content.strip().startswith('$'):
-            try: group = CorpGroup.objects.get(discordid=message.server.id)
+            try: group = CorpGroup.objects.get(discordid=message.guild.id)
             except ObjectDoesNotExist: group = dummygp
             try: player = Player.objects.get(discordid=message.author.id)
             except ObjectDoesNotExist:
@@ -42,7 +52,7 @@ class Hades9000Bot (discord.Client):
 
     async def on_member_join(self, member):
         try:
-            group = CorpGroup.objects.get(discordid=member.server.id)
+            group = CorpGroup.objects.get(discordid=member.guild.id)
         except ObjectDoesNotExist:
             return
         if group.enable_welcome:
@@ -53,11 +63,11 @@ class Hades9000Bot (discord.Client):
 
     async def on_member_remove(self, member):
         try:
-            group = CorpGroup.objects.get(discordid=member.server.id)
+            group = CorpGroup.objects.get(discordid=member.guild.id)
         except ObjectDoesNotExist:
             return
         if group.enable_leavenotif:
-            print(member.server)
+            print(member.guild)
             await self.send_notification(group, self.string('leave_notif', group.language) % member.name)
 
     async def run_command(self, message, group, player):
@@ -75,13 +85,13 @@ class Hades9000Bot (discord.Client):
                 await self.send_message(message.channel, self.string('inactive_command', player.language) % (commandname, module, self.make_url('editgroup'), module))
                 return
         if command.minimum_role != 'anyone' and not (group.discordid is None and command.name in ('setupgroup', 'setupcorp')):
-            minrole = self.get_role(command.minimum_role, group, message.server)
+            minrole = self.get_role(command.minimum_role, group, message.guild)
             if discorduser.top_role < minrole:
                 await self.send_message(message.channel, self.string('permission_denied', player.language) % minrole.name)
                 return
 
         if command.parser is None:
-            command.make_parser()
+            command.parser = command.make_parser(command.arguments)
         parser = command.parser
         try:
             arguments = parser.parse_args(shlex.split(message.content.partition(' ')[2]))
@@ -112,6 +122,8 @@ class Hades9000Bot (discord.Client):
                     return COMMANDS[module][commandname]
             elif commandname in COMMANDS[module]:
                 return 'inactive ' + module
+        if commandname in self.customcmds[group.id]:
+            return self.customcmds[group.id][commandname]['runner']
         return 'unknown'
 
     def all_commands(self, group):
@@ -126,21 +138,21 @@ class Hades9000Bot (discord.Client):
         return commands
 
     async def send_notification(self, group, message):
-        server = discord.utils.get(self.servers, id=group.discordid)
-        channel = discord.utils.get(server.channels, id=group.notifchannel)
+        guild = discord.utils.get(self.guilds, id=group.discordid)
+        channel = discord.utils.get(guild.channels, id=group.notifchannel)
         if channel is not None:
             await self.send_message(channel, message)
         else:
-            await self.send_message(server, message)
+            await self.send_message(guild, message)
             await self.send_management_message(group, self.string('bad_notif_channel_error', group.language) % group.notifchannel)
 
     async def send_management_message(self, group, message):
-        server = discord.utils.get(self.servers, id=group.discordid)
-        channel = discord.utils.get(server.channels, id=group.managementchannel)
+        guild = discord.utils.get(self.guilds, id=group.discordid)
+        channel = discord.utils.get(guild.channels, id=group.managementchannel)
         if channel is not None:
             await self.send_message(channel, message)
         else:
-            await self.send_message(server, message)
+            await self.send_message(guild, message)
             await self.send_group_admin_message(group, self.string('bad_management_channel_error', group.language) % group.managementchannel)
 
     async def send_group_admin_message(self, group, message):
@@ -149,34 +161,34 @@ class Hades9000Bot (discord.Client):
                 await self.send_message(admin, message)
 
     async def send_group_message(self, group, message):
-        server = discord.utils.get(self.servers, id=group.discordid)
-        if server is not None:
-            await self.send_message(server, message)
+        guild = discord.utils.get(self.guilds, id=group.discordid)
+        if guild is not None:
+            await self.send_message(guild, message)
         else:
-            await self.send_group_admin_message(group, self.string('bad_server', group.language) % group.discordid)
+            await self.send_group_admin_message(group, self.string('bad_guild', group.language) % group.discordid)
 
-    def get_member(self, name, server):
-        user = discord.utils.get(server.members, nick=name)
+    def get_member(self, name, guild):
+        user = discord.utils.get(guild.members, nick=name)
         if user is not None:
             return user
-        user = discord.utils.get(server.members, name=name)
+        user = discord.utils.get(guild.members, name=name)
         if user is not None:
             return user
-        user = discord.utils.get(server.members, mention=name)
+        user = discord.utils.get(guild.members, mention=name)
         if user is not None:
             return user
-        user = discord.utils.get(server.members, id=name)
+        user = discord.utils.get(guild.members, id=name)
         return user
 
-    def get_role(self, grade, group, server):
+    def get_role(self, grade, group, guild):
         if grade == 'member':
-            return discord.utils.get(server.roles, id=group.memberrole)
+            return discord.utils.get(guild.roles, id=group.memberrole)
         elif grade == 'moderator':
-            return discord.utils.get(server.roles, id=group.modorole)
+            return discord.utils.get(guild.roles, id=group.modorole)
         elif grade == 'responsible':
-            return discord.utils.get(server.roles, id=group.resporole)
+            return discord.utils.get(guild.roles, id=group.resporole)
         if grade == 'admin':
-            return discord.utils.get(server.roles, id=group.adminrole)
+            return discord.utils.get(guild.roles, id=group.adminrole)
 
     def make_url(self, end):
         return SITE_URL + end
@@ -191,7 +203,7 @@ class Hades9000Bot (discord.Client):
         if self.defaultlang in self.strings:
             if identifier in self.strings[self.defaultlang]:
                 return self.strings[self.defaultlang][identifier]
-        return 'Bad string identifier'
+        return 'Bad string identifier : %s' % identifier
 
     strings = {
         'FR': {
@@ -203,9 +215,9 @@ class Hades9000Bot (discord.Client):
 
             'online_notification': 'Bonjour. Je suis en ligne.',
             'offline_motification': 'Passage hors-ligne. Au revoir.',
-            'leave_notif': '__**%s a quitté le serveur. Bye ! :wave:**               __',
+            'leave_notif': '__**%s a quitté le serveur. Bye ! :wave:**__',
 
-            'bad_server': 'Le serveur discord choisi n\'existe pas, ou Hades9000 n\'y est pas installé. Vérifiez l\'ID de votre serveur et que Hades9000 l\'a bien rejoint.',
+            'bad_guild': 'Le serveur discord choisi n\'existe pas, ou Hades9000 n\'y est pas installé. Vérifiez l\'ID de votre serveur et que Hades9000 l\'a bien rejoint.',
             'bad_notif_channel_error': 'Le channel de notifications avec l\'ID %s n\'existe pas sur ce serveur. Merci de le reparamètrer sur le site.',
             'bad_management_channel_error': 'Le channel de management avec l\'ID %s n\'existe pas sur ce serveur. Merci de le reparamètrer sur le site.',
             'bad_command': 'La commande "%s" est invalide. Entrez "$help" pour voir la liste des commandes disponibles',

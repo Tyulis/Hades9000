@@ -34,8 +34,10 @@ class cmd_techs (Bot9000Command):
         for shiptype in ship_names:
             level = shiplevels[shiptype]
             score = ship_score(shiptype, level)
+            wsscore = ship_wspoints[shiptype][level]
+            wstotalscore += wsscore
             totalscore += score
-            response += cls.string('ship', player.language) % (ship_names[shiptype], level, score)
+            response += cls.string('ship', player.language) % (ship_names[shiptype], level, score, wsscore)
 
         response += cls.string('modules_introduction', player.language)
 
@@ -61,7 +63,7 @@ class cmd_techs (Bot9000Command):
             'unknown_player': 'Le joueur %s est inconnu',
             'introduction': '**__Techs de %s__**\n',
             'ships_introduction': '\n**__Vaisseaux__**\n',
-            'ship': '__%s__ : **Niveau %d** (%d pts)\n',
+            'ship': '__%s__ : **Niveau %d** (%d pts / %d WS)\n',
             'modules_introduction': '\n**__Modules__**\n',
             'module': '__%s__ : **Niveau %d** (%d pts / %s WS)\n',
             'totalscores': '\n**Score total** : %d pts\n**Score WS** : %d pts',

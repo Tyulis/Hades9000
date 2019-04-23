@@ -46,15 +46,16 @@ class Bot9000Command (object):
         if cls.defaultlang in cls.strings:
             if identifier in cls.strings[cls.defaultlang]:
                 return cls.strings[cls.defaultlang][identifier]
-        return 'Bad string identifier'
+        return 'Bad string identifier : %s' % identifier
 
     @classmethod
-    def make_parser(cls):
+    def make_parser(cls, arguments):
         parser = ThrowingArgumentParser()
-        for argument in cls.arguments:
-            name = argument.strip('?/').split('|')[0]
+        for argument in arguments:
+            name = argument.strip('?/,').split('|')[0]
             optional = '?' in argument
             boolean = '/' in argument
+            arglist = ',' in argument
             if '|' in argument:
                 short = argument.split('|')[1]
             else:
@@ -68,8 +69,11 @@ class Bot9000Command (object):
             kwargs = {}
             if boolean:
                 kwargs['action'] = 'store_true'
+            elif arglist:
+                #kwargs['action'] = 'append'
+                kwargs['nargs'] = '+'
             parser.add_argument(*args, **kwargs)
-        cls.parser = parser
+        return parser
 
     strings = {
         'EN': {

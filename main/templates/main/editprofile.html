@@ -15,7 +15,7 @@
             <input type="text" name="name" placeholder="Pseudo" value="{{player.name}}" /><br />
             <input type="text" name="discordid" placeholder="ID Discord" value="{{player.discordid}}" disabled="disabled" /><br />
             {% if player.pendingcorp is not None %}
-                <br /><input type="submit" name="changecorp" class="deletebutton" value="Confirmer le changement de corporation" /><br />
+                <br /><input type="submit" name="changecorp" class="deletebutton" value="Confirmer le changement vers la corporation {{player.pendingcorp.name}}" /><br />
             {% endif %}
             {% if player.confirmed %}
                 <h4>Changer le mot de passe (optionnel)</h4>
