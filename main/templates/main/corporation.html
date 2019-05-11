@@ -10,9 +10,9 @@
         {% if corp.group.isgroup %}
             Fait partie du groupe <a href="{% url 'group' corp.group.name %}">{{corp.group.name}}</a><br />
         {% endif %}
-        {% if player.corp.id == corp.id and player.admin %}
-            <a href="{% url 'editcorp' %}" class="editbutton">Modifier</a><br /><br /><br />
-            <a href="{% url 'createws' %}" class="editbutton">Lancer une WS</a>
+        {% if player.corp.group.id == corp.group.id and player.admin %}
+            <a href="{% url 'editcorp' corp.name %}" class="editbutton">Modifier</a><br /><br /><br />
+            <a href="{% url 'createws' corp.name %}" class="editbutton">Lancer une WS</a>
         {% endif %}
         {{corp.relics}} reliques &rarr; Niveau {{corp.level}}<br />
         Influence : {{corp.influence}}<br />
@@ -22,14 +22,13 @@
         {% if player.corp.id == corp.id or corp.publicmembers %}
         <div id="memberdiv">
             <table class="memberstable">
-                <tr><td class="memberstablehcell">Niveau</td><td class="memberstablehcell">Nom</td><td class="memberstablehcell">Influence</td><td class="memberstablehcell">RS</td><td class="memberstablehcell">Admin</td><td class="memberstablehcell">Capitaine</td><td class="memberstablehcell">En WS</td></tr>
+                <tr><td class="memberstablehcell">Niveau</td><td class="memberstablehcell">Nom</td><td class="memberstablehcell">Influence</td><td class="memberstablehcell">RS</td><td class="memberstablehcell">Admin</td><td class="memberstablehcell">En WS</td></tr>
                 {% for member in corp.members %}
                     <tr><td class="memberstablecell">{{member.level}}</td>
                         <td class="memberstablecell"><a href="{% url 'user' member.name %}">{{member.name}}</a></td>
                         <td class="memberstablecell">{{member.influence}}</td>
                         <td class="memberstablecell rs{{member.rslevel}}">RS{{member.rslevel}}</td>
                         <td class="memberstablecell">{{member.admin}}</td>
-                        <td class="memberstablecell">{{member.captain}}</td>
                         <td class="memberstablecell">{{member.in_ws}}</td>
                     </tr>
                 {% endfor %}

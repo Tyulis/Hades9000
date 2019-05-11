@@ -35,8 +35,8 @@ class Hades9000Bot (discord.Client):
             print(cmd)
             cmd['runner'] = CustomCommandRunner(cmdname, cmd['minimum_role'], cmd['arguments'], cmd['code'], group)
         self.customcmds[group.id] = cmds
-        if group.notifications:
-            await self.send_notification(group, self.string('online_notification', group.language))
+        #if group.notifications:
+        #    await self.send_notification(group, self.string('online_notification', group.language))
 
     async def on_message(self, message):
         if message.author == self.user:
@@ -57,7 +57,7 @@ class Hades9000Bot (discord.Client):
             return
         if group.enable_welcome:
             if group.private_welcome:
-                await self.send_message(member, group.welcome)
+                await member.send(group.welcome)
             else:
                 await self.send_notification(group, group.welcome)
 
@@ -78,16 +78,16 @@ class Hades9000Bot (discord.Client):
         command = self.get_command(commandname, group)
         if isinstance(command, str):
             if command == 'unknown':
-                await self.send_message(message.channel, self.string('bad_command', player.language) % commandname)
+                await message.channel.send(self.string('bad_command', player.language) % commandname)
                 return
             elif command.startswith('inactive'):
                 module = command.split()[1]
-                await self.send_message(message.channel, self.string('inactive_command', player.language) % (commandname, module, self.make_url('editgroup'), module))
+                await message.channel.send(self.string('inactive_command', player.language) % (commandname, module, module))
                 return
         if command.minimum_role != 'anyone' and not (group.discordid is None and command.name in ('setupgroup', 'setupcorp')):
             minrole = self.get_role(command.minimum_role, group, message.guild)
             if discorduser.top_role < minrole:
-                await self.send_message(message.channel, self.string('permission_denied', player.language) % minrole.name)
+                await message.channel.send(self.string('permission_denied', player.language) % minrole.name)
                 return
 
         if command.parser is None:
@@ -97,8 +97,8 @@ class Hades9000Bot (discord.Client):
             arguments = parser.parse_args(shlex.split(message.content.partition(' ')[2]))
             await command.run(message, arguments, group, player, self)
         except ArgumentError:
-            await self.send_message(message.channel, self.string('bad_arguments', player.language) % commandname)
-            await self.send_message(message.channel, command.help(player.language))
+            await message.channel.send(self.string('bad_arguments', player.language) % commandname)
+            await message.channel.send(command.help(player.language))
 
     async def send_split(self, channel, content):
         split = ''
@@ -106,10 +106,10 @@ class Hades9000Bot (discord.Client):
             if len(split) + len(line) < 2000:
                 split += line + '\n'
             else:
-                await self.send_message(channel, split)
+                await channel.send(split)
                 split = line + '\n'
         if split != '':
-            await self.send_message(channel, split)
+            await channel.send(split)
 
     def get_command(self, commandname, group):
         if group.discordid is None:
@@ -137,33 +137,36 @@ class Hades9000Bot (discord.Client):
                 commands.extend([COMMANDS[module][command] for command in COMMANDS[module] if not command.startswith('__')])
         return commands
 
+    def command_modules(self):
+        return COMMANDS
+
     async def send_notification(self, group, message):
         guild = discord.utils.get(self.guilds, id=group.discordid)
         channel = discord.utils.get(guild.channels, id=group.notifchannel)
         if channel is not None:
-            await self.send_message(channel, message)
+            await channel.send(message)
         else:
-            await self.send_message(guild, message)
+            await guild.send(message)
             await self.send_management_message(group, self.string('bad_notif_channel_error', group.language) % group.notifchannel)
 
     async def send_management_message(self, group, message):
         guild = discord.utils.get(self.guilds, id=group.discordid)
         channel = discord.utils.get(guild.channels, id=group.managementchannel)
         if channel is not None:
-            await self.send_message(channel, message)
+            await channel.send(message)
         else:
-            await self.send_message(guild, message)
+            await guild.send(message)
             await self.send_group_admin_message(group, self.string('bad_management_channel_error', group.language) % group.managementchannel)
 
     async def send_group_admin_message(self, group, message):
         for admin in group.admins():
             if admin.confirmed:
-                await self.send_message(admin, message)
+                await admin.send(message)
 
     async def send_group_message(self, group, message):
         guild = discord.utils.get(self.guilds, id=group.discordid)
         if guild is not None:
-            await self.send_message(guild, message)
+            await guild.send(message)
         else:
             await self.send_group_admin_message(group, self.string('bad_guild', group.language) % group.discordid)
 
@@ -187,8 +190,35 @@ class Hades9000Bot (discord.Client):
             return discord.utils.get(guild.roles, id=group.modorole)
         elif grade == 'responsible':
             return discord.utils.get(guild.roles, id=group.resporole)
-        if grade == 'admin':
+        elif grade == 'admin':
             return discord.utils.get(guild.roles, id=group.adminrole)
+        elif grade == 'rs1':
+            return discord.utils.get(guild.roles, id=group.rs1role)
+        elif grade == 'rs2':
+            return discord.utils.get(guild.roles, id=group.rs2role)
+        elif grade == 'rs3':
+            return discord.utils.get(guild.roles, id=group.rs3role)
+        elif grade == 'rs4':
+            return discord.utils.get(guild.roles, id=group.rs4role)
+        elif grade == 'rs5':
+            return discord.utils.get(guild.roles, id=group.rs5role)
+        elif grade == 'rs6':
+            return discord.utils.get(guild.roles, id=group.rs6role)
+        elif grade == 'rs7':
+            return discord.utils.get(guild.roles, id=group.rs7role)
+        elif grade == 'rs8':
+            return discord.utils.get(guild.roles, id=group.rs8role)
+        elif grade == 'rs9':
+            return discord.utils.get(guild.roles, id=group.rs9role)
+        elif grade == 'rs10':
+            return discord.utils.get(guild.roles, id=group.rs10role)
+
+
+    def get_loop(self):
+        if self.loop is not None:
+            return self.loop
+        else:
+            return asyncio.get_event_loop()
 
     def make_url(self, end):
         return SITE_URL + end
@@ -221,7 +251,7 @@ class Hades9000Bot (discord.Client):
             'bad_notif_channel_error': 'Le channel de notifications avec l\'ID %s n\'existe pas sur ce serveur. Merci de le reparamètrer sur le site.',
             'bad_management_channel_error': 'Le channel de management avec l\'ID %s n\'existe pas sur ce serveur. Merci de le reparamètrer sur le site.',
             'bad_command': 'La commande "%s" est invalide. Entrez "$help" pour voir la liste des commandes disponibles',
-            'inactive_command': 'La commande "%s" est dans le module `%s`, qui est désactivé pour ce serveur. Utilisez l\'interface d\'administration à %s ou `$togglemodule %s` pour l\'activer',
+            'inactive_command': 'La commande "%s" est dans le module `%s`, qui est désactivé pour ce serveur. Utilisez `$togglemodule %s` pour l\'activer',
             'bad_arguments': 'Arguments invalides pour la commande "%s"',
             'permission_denied': 'Vous n\'avez pas les permissions nécéssaires pour effectuer cette action. Rôle minimal : %s',
         }

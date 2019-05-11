@@ -27,6 +27,17 @@ class CorpGroup (models.Model):
 	modorole = models.IntegerField(null=True)
 	memberrole = models.IntegerField(null=True)
 
+	rs1role = models.IntegerField(null=True)
+	rs2role = models.IntegerField(null=True)
+	rs3role = models.IntegerField(null=True)
+	rs4role = models.IntegerField(null=True)
+	rs5role = models.IntegerField(null=True)
+	rs6role = models.IntegerField(null=True)
+	rs7role = models.IntegerField(null=True)
+	rs8role = models.IntegerField(null=True)
+	rs9role = models.IntegerField(null=True)
+	rs10role = models.IntegerField(null=True)
+
 	commandmodules = models.TextField(default='["help", "account"]')
 	enable_welcome = models.BooleanField(default=False)
 	enable_leavenotif = models.BooleanField(default=False)
@@ -34,7 +45,6 @@ class CorpGroup (models.Model):
 	welcome = models.TextField(default='')
 
 	custom_commands = models.TextField(default='{}')
-
 
 	def corporations(self):
 		return Corporation.objects.filter(group__id=self.id)
@@ -61,6 +71,9 @@ class CorpGroup (models.Model):
 	def setcustomcommands(self, commands):
 		self.custom_commands = json.dumps(commands)
 
+	def rsroles(self):
+		return [self.rs1role, self.rs2role, self.rs3role, self.rs4role, self.rs5role, self.rs6role, self.rs7role, self.rs8role, self.rs9role, self.rs10role]
+
 	def __str__(self):
 		return 'CorpGroup %s' % self.name
 
@@ -70,8 +83,10 @@ class Corporation (models.Model):
 	group = models.ForeignKey(CorpGroup, on_delete=models.SET_NULL, null=True)
 
 	memberrole = models.IntegerField(null=True)
-	wsrole = models.IntegerField(null=True)
-	leadrole = models.IntegerField(null=True)
+	ws1role = models.IntegerField(null=True)
+	ws2role = models.IntegerField(null=True)
+	lead1role = models.IntegerField(null=True)
+	lead2role = models.IntegerField(null=True)
 
 	def influence(self):
 		result = 0
@@ -198,12 +213,21 @@ class Player (models.Model):
 		mods[module] = level
 		self.stats().modules = json.dumps(mods)
 
+	def techscore(self):
+		return self.stats().techscore()
+
+	def wsscore(self):
+		return self.stats().wsscore()
+
 	def tzinfo(self):
 		return pytz.timezone(self.timezone)
 
 	def utcoffset(self):
 		tzinfo = pytz.timezone(self.timezone)
 		return tzinfo.utcoffset(datetime.datetime.now())
+
+	def datetime(self):
+		return datetime.datetime.now().astimezone(self.tzinfo())
 
 	def in_ws(self):
 		for ws in WS.objects.filter(corp__id=self.corp.id, state="ws.state.running"):
@@ -219,10 +243,12 @@ class WS (models.Model):
 	name = models.CharField(max_length=240)
 	corp = models.ForeignKey(Corporation, on_delete=models.CASCADE)
 	opponentcorp = models.CharField(max_length=120, default='???')
+	lead = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True)
 	score = models.IntegerField(default=0)
 	opponentscore = models.IntegerField(default=0)
 	start = models.DateTimeField()
 	comment = models.TextField(default='')
+	slot = models.IntegerField(default=1)
 	state = models.CharField(max_length=120, default='ws.state.future')
 
 	def end(self):
@@ -247,7 +273,6 @@ class PlayerUpdate (models.Model):
 	bslevel = models.IntegerField(default=1)
 	fslevel = models.IntegerField(default=1)
 	tslevel = models.IntegerField(default=1)
-	captain = models.BooleanField(default=False)
 	ships = models.TextField(default='[]')
 
 	@classmethod
@@ -267,7 +292,7 @@ class PlayerUpdate (models.Model):
 		self.modules = json.dumps(modules)
 
 	def setmodule(self, module, level):
-		mods = json.loads(self.stats().modules)
+		mods = json.loads(self.modules)
 		mods[module] = level
 		self.modules = json.dumps(mods)
 
@@ -283,9 +308,9 @@ class PlayerUpdate (models.Model):
 
 	def orderedships(self):
 		ships = self.getships()
-		battleships = [ship for ship in ships if ship['type'] == 'ship.battleship']
-		miners = [ship for ship in ships if ship['type'] == 'ship.miner']
-		transports = [ship for ship in ships if ship['type'] == 'ship.transport']
+		battleships = [ship for ship in ships if ship['type'] == 'ship.player.battleship']
+		miners = [ship for ship in ships if ship['type'] == 'ship.player.miner']
+		transports = [ship for ship in ships if ship['type'] == 'ship.player.transport']
 		return sorted(battleships, key=lambda t: t['name']) + sorted(miners, key=lambda t: t['name']) + sorted(transports, key=lambda t: t['name'])
 
 	def setships(self, ships):
@@ -300,7 +325,7 @@ class PlayerUpdate (models.Model):
 		self.ships = json.dumps(ships)
 
 	def shiplevels(self):
-		return {'ship.battleship': self.bslevel, 'ship.miner': self.fslevel, 'ship.transport': self.tslevel}
+		return {'ship.player.battleship': self.bslevel, 'ship.player.miner': self.fslevel, 'ship.player.transport': self.tslevel}
 
 	def ship_ids(self):
 		return [ship['id'] for ship in self.getships()]
@@ -320,7 +345,7 @@ class PlayerUpdate (models.Model):
 	def techscore(self):
 		totalscore = 0
 		shiplevels = self.shiplevels()
-		for shiptype in ship_names:
+		for shiptype in ship_types:
 			level = shiplevels[shiptype]
 			totalscore += ship_score(shiptype, level)
 
@@ -334,10 +359,16 @@ class PlayerUpdate (models.Model):
 	def wsscore(self):
 		wstotalscore = 0
 		modulelevels = self.getmodules()
+		shiplevels = self.shiplevels()
+		for shiptype in shiplevels.keys():
+			wsscore = ship_data(shiptype, shiplevels[shiptype], 'WhiteStarScore')
+			if wsscore is not None:
+				wstotalscore += wsscore
+
 		for modulecode in modulelevels:
 			if modulelevels[modulecode] > 0:
 				level = modulelevels[modulecode]
-				wsscore = moduledata[modulecode][level - 1]['WhiteStarScore']
+				wsscore = module_data(modulecode, level, 'WhiteStarScore')
 				if wsscore is not None:
 					wstotalscore += wsscore
 		return wstotalscore
@@ -383,11 +414,11 @@ class WSPlayer (models.Model):
 
 	def getdispos(self):
 		dic = json.loads(self.dispos)
-		result = {datetime.datetime.strptime(key, '%d-%m-%Y_%H').astimezone(self.update.player.tzinfo()): dispo for key, dispo in dic.items()}
+		result = {datetime.datetime.strptime(key, '%d-%m-%Y').astimezone(self.update.player.tzinfo()).date(): dispo for key, dispo in dic.items()}
 		return result
 
 	def setdispos(self, dispos):
-		dic = {dt.astimezone(pytz.UTC).strftime('%d-%m-%Y_%H'): dispo for dt, dispo in dispos.items()}
+		dic = {dt.astimezone(pytz.UTC).strftime('%d-%m-%Y'): dispo for dt, dispo in dispos.items()}
 		self.dispos = json.dumps(dic)
 
 	def __str__(self):
@@ -404,6 +435,12 @@ class RedStar (models.Model):
 
 	def players(self):
 		return [player for player in (self.player1, self.player2, self.player3, self.player4) if player is not None]
+
+	def resetplayers(self):
+		self.player1 = None
+		self.player2 = None
+		self.player3 = None
+		self.player4 = None
 
 	def __str__(self):
 		return 'RS%d in %s' % (self.level, self.group.name)

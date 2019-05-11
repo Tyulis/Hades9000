@@ -7,11 +7,12 @@
     {% if error is not None %}
         <h2 class="error">{{error}}</h2>
     {% else %}
-        <h2>Lancement d'une étoile blanche</h2>
+        <h2>Modification d'une étoile blanche</h2>
         <form action="{% url 'updatews' %}" method="POST">
             {% csrf_token %}
             <input type="hidden" name="wsid" value="{{ws.id}}" />
             Nom : <input type="text" name="name" value="{{ws.name}}" /><br />
+            Emplacement : <input type="number" name="slot" min="1" max="2" step="1" default="1" /><br />
             Adversaires : <input type="text" name="opponentcorp" value="{{ws.opponentcorp}}" /><br />
             Score : <input type="number" name="score" value="{{ws.score}}" min="0" max="999999" /><br />
             Score des adversaires : <input type="number" name="opponentscore" value="{{ws.opponentscore}}" min="0" max="999999" /><br />

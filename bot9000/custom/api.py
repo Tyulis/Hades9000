@@ -27,7 +27,7 @@ class CustomCommandCapsule (object):
 		}
 	}
 
-class ContextCapsule (object):
+class ContextCapsule (CustomCommandCapsule):
 	def __init__(self, context):
 		self.context = context
 
@@ -37,8 +37,11 @@ class ContextCapsule (object):
 	def channel(self):
 		return ChannelCapsule(self.context.channel, self.context)
 
-	def server(self):
+	def guild(self):
 		return GuildCapsule(self.context.guild, self.context)
+
+	def author(self):
+		return MemberCapsule(self.context.message.author, self.context)
 
 	def player(self):
 		return PlayerCapsule(self.context.player, self.context)
@@ -62,6 +65,13 @@ class ContextCapsule (object):
 			return RoleCapsule(role, self.context)
 		else:
 			return None
+
+	def answer(self, content):
+		"""#ContextCapsule.answer(content)
+		Sends a message to the channel where the command has been sent. Shortcut for context.channel().send(content)
+		- **content** : The content of the message to send
+		- **Returns** : The sent message"""
+		self.asyncrun(self.context.channel.send(content))
 
 class CorpGroupCapsule (CustomCommandCapsule):
 	def __init__(self, group, context):
@@ -256,7 +266,7 @@ class RSCapsule (CustomCommandCapsule):
 		self.rs = rs
 		self.context = context
 
-class ServerCapsule (CustomCommandCapsule):
+class GuildCapsule (CustomCommandCapsule):
 	def __init__(self, guild, context):
 		self.guild = guild
 		self.context = context
@@ -266,8 +276,8 @@ class ChannelCapsule (CustomCommandCapsule):
 		self.channel = channel
 		self.context = context
 
-	def send_message(self, content):
-		return self.asyncrun(self.context.bot.send_message(self.channel, content))
+	def send(self, content):
+		return self.asyncrun(self.channel.send(content))
 
 class MessageCapsule (CustomCommandCapsule):
 	def __init__(self, message, context):
@@ -275,10 +285,10 @@ class MessageCapsule (CustomCommandCapsule):
 		self.context = context
 
 	def delete(self):
-		self.asyncrun(self.context.bot.delete_message(self.message))
+		self.asyncrun(self.message.delete())
 
 	def edit(self, content):
-		self.message = self.asyncrun(self.context.bot.edit_message(self.message, content))
+		self.message = self.asyncrun(self.message.edit(content=content))
 
 class MemberCapsule (CustomCommandCapsule):
 	def __init__(self, member, context):
@@ -286,20 +296,25 @@ class MemberCapsule (CustomCommandCapsule):
 		self.context = context
 
 	def add_role(self, rolecaps):
-		self.asyncrun(self.context.bot.add_roles(self.member, rolecaps.role))
+		self.asyncrun(self.member.add_roles(rolecaps.role))
 
 	def remove_role(self, rolecaps):
-		self.asyncrun(self.context.bot.remove_roles(self.member, rolecaps.role))
+		self.asyncrun(self.member.remove_roles(rolecaps.role))
 
 class RoleCapsule (CustomCommandCapsule):
 	def __init__(self, role, context):
 		self.role = role
 		self.context = context
 
+	def color(self):
+		return self.role.colour
+	def colour(self):
+		return self.role.colour
+
 	def rename(self, name):
-		self.asyncrun(self.context.bot.edit_role(self.context.guild, self.role, name=name))
+		self.asyncrun(self.role.edit(name=name))
 
 	def set_color(self, value):
 		color = discord.Colour(value)
 		print(color)
-		self.asyncrun(self.context.bot.edit_role(self.context.guild, self.role, colour=color))
+		self.asyncrun(self.role.edit(colour=color))

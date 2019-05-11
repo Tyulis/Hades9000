@@ -29,54 +29,58 @@ def corporation(request, corpname, error=None):
 	}
 	return render(request, 'main/corporation.html', data)
 
-def editcorp(request, error=None):
+def editcorp(request, corpname, error=None):
 	if not request.user.is_authenticated:
 		return home(request, 'Vous devez vous connecter pour accéder au site')
 	try:
 		player = Player.objects.get(user__id=request.user.id)
 	except ObjectDoesNotExist:
 		return home(request, 'Utilisateur invalide')
-	if not player.admin:
+	try:
+		corp = Corporation.objects.get(name=corpname)
+	except ObjectDoesNotExist:
+		return corporation(request, player.corp.name, error='Cette corporation n\'existe pas')
+	if not player.admin or player.corp.group != corp.group:
 		return corporation(request, player.corp.name, error='Vous n\'avez pas la permission d\'accéder à cette page')
 	data = {
 		'title': 'Hades9000 : Modification de la corporation', 'error': error,
-		'corp': player.corp, 'player': player,
+		'corp': corp, 'player': player,
 	}
 	return render(request, 'main/editcorp.html', data)
 
-def updatecorp(request):
+def updatecorp(request, corpname):
 	if not request.user.is_authenticated:
 		return home(request, 'Vous devez vous connecter pour accéder au site')
 	try:
 		player = Player.objects.get(user__id=request.user.id)
 	except:
 		return home(request, 'Utilisateur invalide')
-	if not player.admin:
+	try:
+		corp = Corporation.objects.get(name=corpname)
+	except ObjectDoesNotExist:
+		return corporation(request, player.corp.name, error='Cette corporation n\'existe pas')
+	if not player.admin or player.corp.group != corp.group:
 		return corporation(request, player.corp.name, error='Vous n\'avez pas la permission d\'accéder à cette page')
 	if not request.POST:
 		return corporation(request, player.corp.name, error='Requête invalide')
-	corp = player.corp
 	corp.name = request.POST.get('name')
 	corp.relics = int(request.POST.get('relics'))
-	corp.group.discordlink = request.POST.get('discordlink')
-	corp.group.publiclink = 'publiclink' in request.POST
-	corp.group.publicmembers = 'publicmembers' in request.POST
-	corp.group.publicws = 'publicws' in request.POST
+	if not corpo.group.isgroup:
+		corp.group.discordlink = request.POST.get('discordlink')
+		corp.group.publiclink = 'publiclink' in request.POST
+		corp.group.publicmembers = 'publicmembers' in request.POST
+		corp.group.publicws = 'publicws' in request.POST
 	for member in corp.members():
 		member.admin = '%s_admin' % member.id in request.POST
 		if '%s_kick' % member.id in request.POST:
 			member.corp = None
 		member.save()
-		captain = '%s_captain' % member.id in request.POST
-		if captain != member.captain():
-			update = member.stats()
-			update.id = None
-			update.date = datetime.datetime.now().astimezone(player.tzinfo())
-			update.captain = '%s_captain' % member.id in request.POST
-			update.save()
 	corp.save()
 	corp.group.save()
-	return HttpResponseRedirect('/corporation/%s' % player.corp.name)
+	if 'save_editgroup' in request.POST:
+		return HttpResponseRedirect('/editgroup')
+	else:
+		return HttpResponseRedirect('/corporation/%s' % player.corp.name)
 
 def integrategroup(request, error=None):
 	if not request.user.is_authenticated:
@@ -164,7 +168,44 @@ def group(request, name, error=None):
 	return render(request, 'main/group.html', data)
 
 def editgroup(request, error=None):
-	return 'Nope'
+	if not request.user.is_authenticated:
+		return home(request, error='Vous devez vous connecter pour accéder au site')
+	try:
+		player = Player.objects.get(user__id=request.user.id)
+	except:
+		return home(request, 'Utilisateur invalide')
+	if not player.admin:
+		return corporation(request, player.corp.name, 'Vous n\'avez pas la permission d\'accéder à cette page')
+	group = player.corp.group
+	if not group.isgroup:
+		return HttpResponseRedirect('/editcorp')
+	data = {
+		'player': player, 'group': group, 'error': error,
+	}
+	return render(request, 'main/editgroup.html', data)
+
 
 def updategroup(request, error=None):
-	return 'Nope'
+	if not request.user.is_authenticated:
+		return home(request, 'Vous devez vous connecter pour accéder au site')
+	try:
+		player = Player.objects.get(user__id=request.user.id)
+	except:
+		return home(request, 'Utilisateur invalide')
+	if not player.admin:
+		return corporation(request, player.corp.name, error='Vous n\'avez pas la permission d\'accéder à cette page')
+	if not request.POST:
+		return corporation(request, player.corp.name, error='Requête invalide')
+	group = player.corp.group
+	group.name = request.POST.get('name')
+	group.discordlink = request.POST.get('discordlink')
+	group.publiclink = 'publiclink' in request.POST
+	group.publicmembers = 'publicmembers' in request.POST
+	group.publicws = 'publicws' in request.POST
+	for member in group.members():
+		member.admin = '%s_admin' % member.id in request.POST
+		if '%s_kick' % member.id in request.POST:
+			member.corp = None
+		member.save()
+	group.save()
+	return HttpResponseRedirect('/group/%s' % group.name)

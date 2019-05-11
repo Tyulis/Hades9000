@@ -11,10 +11,19 @@
         <a href="{% url 'corporation' ws.corp.name %}">{{ws.corp.name}}</a> - {{ws.opponentcorp}}<br />
         Score : <span style="color:#66AAFF">{{ws.score}}</span> - <span style="color:#FF5522">{{ws.opponentscore}}</span><br />
         {{ws.start|localize:player.utcoffset}} - {{ws.end|localize:player.utcoffset}}<br />
-        État : {{wsstates|dictget:ws.state}}
-        {% if player.corp.id == ws.corp.id %}
-            <a href="{% url 'registerws' ws.id %}" class="editbutton">Inscription</a><br /><br /><br />
-            {% if player.admin %}
+        État : {{wsstates|dictget:ws.state}}<br />
+        Emplacement : {{ws.slot}}<br />
+        Lead :
+        {% if ws.lead is not None %}
+            <a href="{% url 'user' ws.lead.name %}">{{ws.lead.name}}</a>
+        {% else %}
+            <i>Aucun</i>
+        {% endif %}<br />
+        {% if player.corp.group.id == ws.corp.group.id %}
+            {% if ws.state == "ws.state.inscriptions" %}
+                <a href="{% url 'registerws' ws.id %}" class="editbutton">Inscription</a><br /><br /><br />
+            {% endif %}
+            {% if player.admin or player.responsible %}
                 <a href="{% url 'editws' ws.id %}" class="editbutton">Modifier</a>
             {% endif %}
             <p class="comment">{{ws.comment}}</p>

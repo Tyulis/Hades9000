@@ -13,6 +13,9 @@
 	<a class="topnavlink" href="{% url 'user' player.name %}">Profil</a>
 	{% if player.corp is not None %}
 		<a class="topnavlink" href="{% url 'corporation' player.corp.name %}">Corporation</a>
+		{% if player.corp.group.isgroup %}
+			<a class="topnavlink" href="{% url 'group' player.corp.group.name %}">Groupe</a>
+		{% endif %}
 	{% endif %}
 	<a class="topnavlink" href="{% url 'logout' %}">Déconnexion</a>
 </nav>

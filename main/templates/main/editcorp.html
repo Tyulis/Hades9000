@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block 'content' %}
-    <form action="{% url 'updatecorp' %}" method="POST">
+    <form action="{% url 'updatecorp' corp.name %}" method="POST">
         {% csrf_token %}
         <input type="text" name="name" value="{{corp.name}}" placeholder="Nom de la corporation" /><br />
         Reliques : <input type="number" name="relics" value="{{corp.relics}}" min="0" max="100000" /><br />
@@ -12,17 +12,16 @@
         <input {% if corp.group.isgroup %}disabled="disabled"{% endif %} type="checkbox" name="publicmembers" {% if corp.publicmembers %}checked="checked"{% endif %} />Rendre la liste des membres publique<br />
         <input {% if corp.group.isgroup %}disabled="disabled"{% endif %} type="checkbox" name="publicws" {% if corp.publicws %}checked="checked"{% endif %} />Rendre les WS publiques<br />
         <table class="memberstable">
-            <tr><td class="memberstablehcell">Nom</td><td class="memberstablehcell">Admin</td><td class="memberstablehcell">Capitaine</td><td class="memberstablehcell">Expulsion</td></tr>
+            <tr><td class="memberstablehcell">Nom</td><td class="memberstablehcell">Admin</td><td class="memberstablehcell">Expulsion</td></tr>
             {% for member in corp.members %}
                 <tr><td class="memberstablecell">{{member.name}}</td>
-                    <td class="memberstablecell"><input type="checkbox" name="{{member.id}}_admin" {% if member.admin %}checked="checked"{% endif %} {% if not player.creator %}disabled="disabled"{% endif %}/></td>
-                    <td class="memberstablecell"><input type="checkbox" name="{{member.id}}_captain" {% if member.captain %}checked="checked"{% endif %} /></td>
+                    <td class="memberstablecell"><input type="checkbox" name="{{member.id}}_admin" {% if member.admin %}checked="checked"{% endif %} /></td>
                     <td class="memberstablecell"><input type="submit" name="{{member.id}}_kick" value="Expulser" /></td>
                 </tr>
             {% endfor %}
         </table>
         <input type="submit" name="save" value="Enregistrer" /><br />
-        {% if corp.group.is_group %}
+        {% if corp.group.isgroup %}
             <input type="submit" name="save_editgroup" value="Enregistrer et modifier le groupe" /><br />
         {% endif %}
         <a href="{% url 'integrategroup' %}"><em>Intégrer un groupe</em></a>

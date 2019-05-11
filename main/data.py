@@ -1,9 +1,10 @@
 import math
-from .moduledata import *
+from .moduledata import _MODULE_DATA
+from .shipdata import _SHIP_DATA
 
-modules = {}
+modules = {'trade': [], 'mining': [], 'weapon': [], 'shield': [], 'support': []}
 
-modules['trade'] = (
+"""modules['trade'] = (
 	'module.trade.extension',
 	'module.trade.computer',
 	'module.trade.boost',
@@ -27,6 +28,7 @@ modules['mining'] = (
 	'module.mining.unity',
 	'module.mining.crunch',
 	'module.mining.genesis',
+	'module.mining.rocket',
 	'module.mining.drone',
 	'module.mining.none',
 )
@@ -56,8 +58,8 @@ modules['support'] = (
 	'module.support.emp',
 	'module.support.teleport',
 	'module.support.rse',
-	'module.support.remote-repair',
-	'module.support.time-warp',
+	'module.support.repair',
+	'module.support.warp',
 	'module.support.unity',
 	'module.support.sanctuary',
 	'module.support.stealth',
@@ -72,117 +74,146 @@ modules['support'] = (
 	'module.support.delta-rocket',
 	'module.support.leap',
 	'module.support.bond',
-	'module.support.alpha-drone',
+	'module.support.drone',
 	'module.support.omega-rocket',
 	'module.support.none',
-)
+)"""
+
+for modname in _MODULE_DATA.keys():
+	if 'cerberus' not in modname:
+		modules[_MODULE_DATA[modname][0]['SlotType'].lower()].append(modname)
+modules['trade'].sort(key=lambda name: _MODULE_DATA[name][0]['AwardLevel'])
+modules['mining'].sort(key=lambda name: _MODULE_DATA[name][0]['AwardLevel'])
+modules['weapon'].sort(key=lambda name: _MODULE_DATA[name][0]['AwardLevel'])
+modules['shield'].sort(key=lambda name: _MODULE_DATA[name][0]['AwardLevel'])
+modules['support'].sort(key=lambda name: _MODULE_DATA[name][0]['AwardLevel'])
+modules['trade'].append('module.trade.none')
+modules['mining'].append('module.mining.none')
+modules['shield'].append('module.shield.none')
+modules['support'].append('module.support.none')
 
 module_names = {
-	'module.trade.extension': 'Extension de l\'aire de chargement',
-	'module.trade.computer': 'IA de cargaisons',
-	'module.trade.boost': 'Bonus d\'échange',
-	'module.trade.rush': 'Ruée',
-	'module.trade.burst': 'Poussée d\'échange',
-	'module.trade.drone': 'Drone de cargaisons',
-	'module.trade.offload': 'Déchargement',
-	'module.trade.beam': 'Rayon de cargaisons',
-	'module.trade.entrust': 'Confiance',
-	'module.trade.dispatch': 'Expédition',
-	'module.trade.recall': 'Rappel',
-	'module.trade.none': 'Vide',
+	'FR': {
+		'module.trade.extension': 'Extension de l\'aire de chargement',
+		'module.trade.computer': 'IA de cargaisons',
+		'module.trade.boost': 'Bonus d\'échange',
+		'module.trade.rush': 'Ruée',
+		'module.trade.burst': 'Poussée d\'échange',
+		'module.trade.drone': 'Drone de cargaisons',
+		'module.trade.offload': 'Déchargement',
+		'module.trade.beam': 'Rayon de cargaisons',
+		'module.trade.entrust': 'Confiance',
+		'module.trade.dispatch': 'Expédition',
+		'module.trade.recall': 'Rappel',
+		'module.trade.none': 'Vide',
 
-	'module.mining.boost': 'Bonus de forage',
-	'module.mining.extension': 'Extension de stockage d\'hydrogène',
-	'module.mining.enrich': 'Enrichissement',
-	'module.mining.remote': 'Forage à distance',
-	'module.mining.upload': 'Transfert d\'hydrogène',
-	'module.mining.unity': 'Unité de forage',
-	'module.mining.crunch': 'Pénurie',
-	'module.mining.genesis': 'Génèse',
-	'module.mining.drone': 'Drone de forage',
-	'module.mining.none': 'Vide',
+		'module.mining.boost': 'Bonus de forage',
+		'module.mining.extension': 'Extension de stockage d\'hydrogène',
+		'module.mining.enrich': 'Enrichissement',
+		'module.mining.remote': 'Forage à distance',
+		'module.mining.upload': 'Transfert d\'hydrogène',
+		'module.mining.unity': 'Unité de forage',
+		'module.mining.crunch': 'Pénurie',
+		'module.mining.genesis': 'Génèse',
+		'module.mining.rocket': 'Roquette à hydrogène',
+		'module.mining.drone': 'Drone de forage',
+		'module.mining.none': 'Vide',
 
-	'module.weapon.none': 'Canon faible',
-	'module.weapon.battery': 'Canon',
-	'module.weapon.laser': 'Laser',
-	'module.weapon.mass-battery': 'Batterie multiple',
-	'module.weapon.dual-laser': 'Double laser',
-	'module.weapon.barrage': 'Barrage',
-	'module.weapon.dart': 'Dart',
+		'module.weapon.none': 'Canon faible',
+		'module.weapon.battery': 'Canon',
+		'module.weapon.laser': 'Laser',
+		'module.weapon.mass-battery': 'Batterie multiple',
+		'module.weapon.dual-laser': 'Double laser',
+		'module.weapon.barrage': 'Barrage',
+		'module.weapon.dart': 'Dart',
 
-	'module.shield.alpha': 'Bouclier alpha',
-	'module.shield.delta': 'Bouclier delta',
-	'module.shield.passive': 'Bouclier passif',
-	'module.shield.omega': 'Bouclier oméga',
-	'module.shield.mirror': 'Bouclier miroir',
-	'module.shield.blast': 'Bouclier balistique',
-	'module.shield.area': 'Bouclier de zone',
-	'module.shield.none': 'Vide',
+		'module.shield.alpha': 'Bouclier alpha',
+		'module.shield.delta': 'Bouclier delta',
+		'module.shield.passive': 'Bouclier passif',
+		'module.shield.omega': 'Bouclier oméga',
+		'module.shield.mirror': 'Bouclier miroir',
+		'module.shield.blast': 'Bouclier balistique',
+		'module.shield.area': 'Bouclier de zone',
+		'module.shield.none': 'Vide',
 
-	'module.support.emp': 'IEM',
-	'module.support.teleport': 'Téléport',
-	'module.support.rse': 'Extension de vie d\'étoile rouge',
-	'module.support.remote-repair': 'Réparation à distance',
-	'module.support.time-warp': 'Distortion temporelle',
-	'module.support.unity': 'Unité',
-	'module.support.sanctuary': 'Sanctuaire',
-	'module.support.stealth': 'Discrétion',
-	'module.support.fortify': 'Fortification',
-	'module.support.impulse': 'Impulsion',
-	'module.support.alpha-rocket': 'Roquette alpha',
-	'module.support.salvage': 'Sauvetage',
-	'module.support.suppress': 'Suppression',
-	'module.support.destiny': 'Destinée',
-	'module.support.barrier': 'Barrière',
-	'module.support.vengeance': 'Vengeance',
-	'module.support.delta-rocket': 'Roquette delta',
-	'module.support.leap': 'Bond',
-	'module.support.bond': 'Lien',
-	'module.support.alpha-drone': 'Drone alpha',
-	'module.support.omega-rocket': 'Roquette oméga',
-	'module.support.none': 'Vide',
+		'module.support.emp': 'IEM',
+		'module.support.teleport': 'Téléport',
+		'module.support.rse': 'Extension de vie d\'étoile rouge',
+		'module.support.repair': 'Réparation à distance',
+		'module.support.warp': 'Distortion temporelle',
+		'module.support.unity': 'Unité',
+		'module.support.sanctuary': 'Sanctuaire',
+		'module.support.stealth': 'Discrétion',
+		'module.support.fortify': 'Fortification',
+		'module.support.impulse': 'Impulsion',
+		'module.support.alpha-rocket': 'Roquette alpha',
+		'module.support.salvage': 'Sauvetage',
+		'module.support.suppress': 'Suppression',
+		'module.support.destiny': 'Destinée',
+		'module.support.barrier': 'Barrière',
+		'module.support.vengeance': 'Vengeance',
+		'module.support.delta-rocket': 'Roquette delta',
+		'module.support.leap': 'Bond',
+		'module.support.bond': 'Lien',
+		'module.support.drone': 'Drone alpha',
+		'module.support.omega-rocket': 'Roquette oméga',
+		'module.support.none': 'Vide',
 
-	'module.none.none': 'Vide',
+		'module.cerberus.guardian-battery': 'Canon (gardien)',
+		'module.cerberus.interceptor-mass-battery': 'Batterie multiple (intercepteur)',
+		'module.cerberus.colossus-laser': 'Laser (colosse)',
+		'module.cerberus.destroyer-vengeance': 'Vengeance (destroyer)',
+		'module.cerberus.phoenix-shield': 'Bouclier de zone (phoenix)',
+		'module.cerberus.bomber-rocket': 'Roquette (bombardier)',
+		'module.cerberus.dart-barrage': 'Barrage Dart (tempête)',
+
+		'module.none.none': 'Vide',
+	}
 }
 
 all_modules = modules['trade'] + modules['mining'] + modules['weapon'] + modules['shield'] + modules['support']
 
 ship_modules = {
-	'ship.battleship': {
-		'trade': (-1, 0, 0, 0, 0, 0),
-		'mining': (-1, 0, 0, 0, 0, 0),
-		'weapon': (-1, 1, 1, 1, 1, 1),
-		'shield': (-1, 1, 1, 1, 1, 1),
-		'support': (-1, 0, 1, 2, 3, 4),
+	'ship.player.battleship': {
+		'trade': [0],
+		'mining': [0],
+		'weapon': [0],
+		'shield': [0],
+		'support': [0],
 	},
-	'ship.miner': {
-		'trade': (-1, 0, 0, 0, 0, 0),
-		'mining': (-1, 1, 2, 2, 3, 4),
-		'weapon': (-1, 0, 0, 0, 0, 0),
-		'shield': (-1, 0, 0, 0, 0, 0),
-		'support': (-1, 0, 0, 1, 1, 1),
+	'ship.player.miner': {
+		'trade': [0],
+		'mining': [0],
+		'weapon': [0],
+		'shield': [0],
+		'support': [0],
 	},
-	'ship.transport':{
-		'trade': (-1, 1, 2, 3, 4, 5),
-		'mining': (-1, 0, 0, 0, 0, 0),
-		'weapon': (-1, 0, 0, 0, 0, 0),
-		'shield': (-1, 0, 0, 0, 0, 0),
-		'support': (-1, 0, 0, 1, 1, 1),
+	'ship.player.transport':{
+		'trade': [0],
+		'mining': [0],
+		'weapon': [0],
+		'shield': [0],
+		'support': [0],
 	},
 }
 
-ship_names = {'ship.battleship': 'Cuirassé', 'ship.miner': 'Foreur', 'ship.transport': 'Transport'}
+for shiptype in ship_modules:
+	shipdata = _SHIP_DATA[shiptype]
+	for level in shipdata:
+		for moduletype in ship_modules[shiptype]:
+			ship_modules[shiptype][moduletype].append(ship_modules[shiptype][moduletype][-1])
+		for moduletype in level['NewModuleSlots'].split('!'):
+			ship_modules[shiptype][moduletype.lower()][-1] += 1
 
-ship_upgrades = {
-	'ship.battleship': (0, 0, 10000, 80000, 400000, 1500000),
-	'ship.miner': (0, 0, 5000, 50000, 250000, 800000),
-	'ship.transport': (0, 0, 10000, 60000, 300000, 1000000),
-}
 
-ship_wspoints = {
-	'ship.battleship': (0, 1, 500, 2000, 4000, 7000),
-	'ship.miner': (0, 1, 500, 1000, 2000, 4000),
-	'ship.transport': (0, 1, 500, 1000, 1500, 2000),
+ship_types = ('ship.player.battleship', 'ship.player.miner', 'ship.player.transport')
+
+ship_names = {
+	'FR': {
+		'ship.player.battleship': 'Cuirassé',
+		'ship.player.miner': 'Foreur',
+		'ship.player.transport': 'Transport'
+	},
 }
 
 corp_levels = (0, 1, 30, 100, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000)
@@ -197,24 +228,13 @@ ws_states = {
 	'ws.state.ended': 'Terminée',
 }
 
-bot_commands = (
-	'bot.confirm.user',
-	'bot.confirm.corp',
-	'bot.confirm.group',
-	'bot.confirm.joincorp',
-	'bot.confirm.joingroup',
-)
-
-bot_operations = (
-	'bot.question.confirm.user',
-	'bot.question.confirm.corp',
-	'bot.question.confirm.group',
-	'bot.question.confirm.joincorp',
-	'bot.question.confirm.joingroup',
-)
-
 max_rslevel = 10
 
+def module_data(module, level, info):
+	return _MODULE_DATA[module][level - 1][info]
+
+def ship_data(ship, level, info):
+	return _SHIP_DATA[ship][level - 1][info]
 
 def credits_score(price):
 	return 5 * math.sqrt(price)
@@ -223,13 +243,16 @@ def blueprints_score(blueprints):
 	return 10 * math.sqrt(blueprints)
 
 def ship_score(type, level):
-	return int(credits_score(sum(ship_upgrades[type][:level + 1])) * 1.7)
+	return int(credits_score(sum([ship_data(type, tlevel, 'DesignUpgradeCost') for tlevel in range(1, level + 1)]) * 1.7))
 
 def module_score(code, level):
 	if level <= 0:
 		return 0
-	blueprints = moduledata[code][level - 1]['UnlockBlueprints']
-	credits = sum([moduledata[code][tlevel]['UnlockPrice'] for tlevel in range(level)])
-	rslevel = moduledata[code][0]['AwardLevel'] + 2
+	blueprints = module_data(code, level, 'UnlockBlueprints')
+	credits = sum([module_data(code, tlevel, 'UnlockPrice') for tlevel in range(1, level + 1)])
+	rslevel = module_data(code, 1, 'AwardLevel') + 2
 	#print("%s : %.3f, %.3f, %.1f" % (code, credits_score(credits), blueprints_score(blueprints), (1 + rslevel / 5)))
 	return int(((credits_score(credits) + blueprints_score(blueprints)) / 2) * (1 + rslevel / 5))
+
+def transport_capacity(tslevel, cbelevel):
+	return ship_data('ship.player.transport', tslevel, 'JobCapacity') + module_data('module.trade.extension', cbelevel, 'ExtraTradeSlots')

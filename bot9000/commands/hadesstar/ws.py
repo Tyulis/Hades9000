@@ -18,11 +18,11 @@ class cmd_wslist (Bot9000Command):
             try:
                 corp = Corporation.objects.get(name=arguments.corporation)
                 if not corp.group.publicws and corp.group != group:
-                    await bot.send_message(message.channel, cls.string('ws_private', player.language) % arguments.corporation)
+                    await message.channel.send(cls.string('ws_private', player.language) % arguments.corporation)
                     return
                 corps = [corp]
             except ObjectDoesNotExist:
-                await bot.send_mesage(message.channel, cls.string('unknown_corp', player.language) % arguments.corporation)
+                await message.channel.send(cls.string('unknown_corp', player.language) % arguments.corporation)
                 return
         else:
             corps = group.corporations()
@@ -34,7 +34,7 @@ class cmd_wslist (Bot9000Command):
         response = cls.string('introduction', player.language) % (corps[0].name if len(corps) <= 1 else group.name)
         for ws in wss:
             response += cls.string('ws', player.language) % (ws.id, ws.name, ws.start.astimezone(player.tzinfo()).strftime('%d/%m/%Y %H:%M'), ws_states[ws.state])
-        await bot.send_message(message.channel, response)
+        await message.channel.send(response)
 
     strings = {
         'FR': {
@@ -58,24 +58,24 @@ class cmd_wsinit (Bot9000Command):
     async def run(cls, message, arguments, group, player, bot):
         if arguments.corporation is None:
             if group.isgroup:
-                await bot.send_message(message.channel, cls.string('choose_corp', player.language))
+                await message.channel.send(cls.string('choose_corp', player.language))
                 return
             else:
-                corp = group.corps()[0]
+                corp = group.corporations()[0]
         else:
             try:
                 corp = Corporation.objects.get(name=arguments.corporation)
                 if corp.group != group:
-                    await bot.send_message('foreign_corp', player.language) % arguments.corporation
+                    await message.channel.send(cls.string('foreign_corp', player.language) % arguments.corporation)
                     return
             except ObjectDoesNotExist:
-                await bot.send_message('unknown_corp', player.language) % arguments.corporation
+                await message.channel.send(cls.string('unknown_corp', player.language) % arguments.corporation)
                 return
         if arguments.launch is not None:
             try:
                 launchdate = datetime.datetime.strptime(arguments.launch, '%d/%m/%Y-%H:%M').astimezone(player.tzinfo()) - player.utcoffset()
             except ValueError:
-                await bot.send_message('bad_datetime_format', player.language)
+                await message.channel.send(cls.string('bad_datetime_format', player.language))
                 return
         else:
             launchdate = datetime.datetime.now(tz=player.tzinfo())
@@ -84,7 +84,7 @@ class cmd_wsinit (Bot9000Command):
         state = 'ws.state.inscriptions' if arguments.startregister else 'ws.state.future'
         ws = WS(corp=corp, name=name, start=launchdate, state=state)
         ws.save()
-        await bot.send_message(message.channel, cls.string('done', player.language) % (ws.id, bot.make_url('ws/%d' % ws.id)))
+        await message.channel.send(cls.string('done', player.language) % (ws.id, bot.make_url('ws/%d' % ws.id)))
 
     strings = {
         'FR': {
@@ -111,15 +111,15 @@ class cmd_wsinfo (Bot9000Command):
         if arguments.id.isdigit():
             wsid = int(arguments.id)
         else:
-            await bot.send_message(message.channel, cls.string('not_a_number', player.language))
+            await message.channel.send(cls.string('not_a_number', player.language))
             return
         try:
             ws = WS.objects.get(id=wsid)
             if ws.corp.group != group and not ws.corp.group.publicws:
-                await bot.send_message(message.channel, cls.string('foreign_corp', player.language) % wsid)
+                await message.channel.send(cls.string('foreign_corp', player.language) % wsid)
                 return
         except ObjectDoesNotExist:
-            await bot.send_message(message.channel, cls.string('unknown_ws', player.language) % wsid)
+            await message.channel.send(cls.string('unknown_ws', player.language) % wsid)
             return
         response = cls.string('introduction', player.language) % wsid
         response += cls.string('corps', player.language) % (ws.corp.name, ws.score, ws.opponentscore, ws.opponentcorp)
@@ -140,10 +140,10 @@ class cmd_wsinfo (Bot9000Command):
                         modules = []
                         for module in ship['trade'] + ship['mining'] + ship['weapon'] + ship['shield'] + ship['support']:
                             if not module.endswith('.none'):
-                                modules.append('*%s* (niv. %d)' % (module_names[module], modlevels[module]))
-                        response += cls.string('ship', player.language) % (ship['name'], ship_names[ship['type']], ', '.join(modules))
+                                modules.append('*%s* (niv. %d)' % (module_names[player.language][module], modlevels[module]))
+                        response += cls.string('ship', player.language) % (ship['name'], ship_names[player.language][ship['type']], ', '.join(modules))
         response += cls.string('totalstats', player.language) % totalscore
-        await bot.send_message(message.channel, response)
+        await message.channel.send(response)
 
     strings = {
         'FR': {
@@ -172,37 +172,36 @@ class cmd_wsregister (Bot9000Command):
     @classmethod
     async def run(cls, message, arguments, group, player, bot):
         if not arguments.wsid.isdigit():
-            await bot.send_message(message.channel, cls.string('bad_wsid', player.language) % arguments.wsid)
+            await message.channel(cls.string('bad_wsid', player.language) % arguments.wsid)
             return
         wsid = int(arguments.wsid)
-        print(arguments.ships)
         if not all(map(str.isdigit, arguments.ships)):
-            await bot.message(message.channel, cls.string('bad_shipid', player.language))
+            await message.channel.send(cls.string('bad_shipid', player.language))
             return
         shipids = tuple(map(int, arguments.ships))
         try:
             ws = WS.objects.get(id=wsid)
             if ws.corp.group != group:
-                await bot.send_message(message.channel, cls.string('foreign_ws', player.language) % wsid)
+                await message.channel.send(cls.string('foreign_ws', player.language) % wsid)
                 return
         except ObjectDoesNotExist:
-            await bot.send_message(message.channel, cls.string('unknown_ws', player.language) % wsid)
+            await message.channel.send(cls.string('unknown_ws', player.language) % wsid)
             return
         try:
             wsmember = WSPlayer.objects.get(update__player=player)
             if ws.state in ('ws.state.future', 'ws.state.ended'):
-                await bot.send_message(message.channel, cls.string('forbidden_edit', player.language))
+                await message.channel.send(cls.string('forbidden_edit', player.language))
                 return
         except ObjectDoesNotExist:
             if ws.state != 'ws.state.inscriptions':
-                await bot.send_message(message.channel, cls.string('inscriptions_closed', player.language))
+                await message.channel.send(cls.string('inscriptions_closed', player.language))
                 return
             wsmember = WSPlayer(ws=ws)
         wsmember.ws = ws
         wsmember.initdispos(start=ws.start)
         wsmember.setships(shipids)
         wsmember.save()
-        await bot.send_message(message.channel, cls.string('done', player.language) % wsid)
+        await message.channel.send(cls.string('done', player.language) % wsid)
 
     strings = {
         'FR': {
@@ -215,5 +214,168 @@ class cmd_wsregister (Bot9000Command):
             'forbidden_edit': 'Vous ne pouvez pas modifier votre inscription à cette WS',
             'inscriptions_closed': 'Les inscriptions à cette WS sont fermées',
             'done': 'Votre inscription à la WS n°%d a bien été enregistrée !',
+        }
+    }
+
+class cmd_wsstate (Bot9000Command):
+    name = 'wsstate'
+    minimum_role = 'responsible'
+    arguments = ('wsid', 'state')
+    parser = None
+
+    @classmethod
+    async def run(cls, message, arguments, group, player, bot):
+        stateid = 'ws.state.' + arguments.state
+        if stateid not in ws_states:
+            await message.channel.send(cls.string('bad_state', player.language))
+            return
+        if not arguments.wsid.isdigit():
+            await message.channel(cls.string('bad_wsid', player.language) % arguments.wsid)
+            return
+        wsid = int(arguments.wsid)
+        try:
+            ws = WS.objects.get(id=wsid)
+            if ws.corp.group != player.corp.group:
+                await message.channel.send(cls.string('foreign_ws', player.language) % wsid)
+                return
+        except ObjectDoesNotExist:
+            await message.channel.send(cls.string('unknown_ws', player.language) % wsid)
+            return
+        ws.state = stateid
+        ws.save()
+        await message.channel.send(cls.string('done', player.language) % arguments.state)
+
+    strings = {
+        'FR': {
+            'help': '**$wsstate <id> <state>** : Change l\'état d\'une étoile blanche. Utilise l\'ID donné par `$wslist`. L\'état doit être `future` pour une WS future, `inscriptions` si les inscriptions sont ouvertes, `idle` si les inscriptions sont fermées, `running` si la WS est en cours et `ended` si elle est terminée',
+            'description': 'Change l\'état d\'une étoile blanche',
+            'bad_state': 'L\'état doit être `future`, `inscriptions`, `idle`, `running` ou `ended`',
+            'bad_wsid': '"%s" n\'est pas un ID de WS valide. Vous pouvez récupérer les IDs de WS avec la commande `$wslist`',
+            'foreign_ws': 'La WS n°%d n\'est pas dans ce groupe. Utilisez `$wslist` pour voir les IDs de WS',
+            'unknown_ws': 'La WS n°%d est inconnue. Utilisez `$wslist` pour voir les IDs de WS',
+            'done': 'La WS a bien été changée à l\'état %s',
+        }
+    }
+
+class cmd_wsrun (Bot9000Command):
+    name = 'wsrun'
+    minimum_role = 'responsible'
+    arguments = ('wsid', '?/force|f')
+    parser = None
+
+    @classmethod
+    async def run(cls, message, arguments, group, player, bot):
+        if not arguments.wsid.isdigit():
+            await message.channel(cls.string('bad_wsid', player.language) % arguments.wsid)
+            return
+        wsid = int(arguments.wsid)
+        try:
+            ws = WS.objects.get(id=wsid)
+            if ws.corp.group != player.corp.group:
+                await message.channel.send(cls.string('foreign_ws', player.language) % wsid)
+                return
+        except ObjectDoesNotExist:
+            await message.channel.send(cls.string('unknown_ws', player.language) % wsid)
+            return
+        if ws.state in ('ws.state.running', 'ws.state.ended'):
+            await message.channel.send(cls.string('bad_state', player.language))
+            return
+        members = ws.players()
+        if len(members) not in (5, 10, 15) and not arguments.force:
+            await message.channel.send(cls.string('bad_rostersize', player.language) % len(members))
+            return
+        wsroleid = (ws.corp.ws1role if ws.slot == 1 else ws.corp.ws2role)
+        leadroleid = (ws.corp.lead1role if ws.slot == 1 else ws.corp.lead2role)
+        wsrole = discord.utils.get(message.guild.roles, id=wsroleid)
+        leadrole = discord.utils.get(message.guild.roles, id=leadroleid)
+        if wsrole is None:
+            await message.channel.send(cls.string('no_wsrole', player.language) % (ws.slot, ws.corp.name, ws.slot))
+        if leadrole is None:
+            await message.channel.send(cls.string('no_leadrole', player.language) % (ws.slot, ws.corp.name, ws.slot))
+        for player in members:
+            discorduser = discord.utils.get(message.guild.members, id=player.discordid)
+            roles = []
+            if wsrole is not None:
+                roles.append(wsrole)
+            if leadrole is not None and ws.lead == player:
+                roles.append(leadrole)
+            await discorduser.add_roles(*roles)
+        ws.state = 'ws.state.running'
+        ws.save()
+        await message.channel.send(cls.string('done', player.language))
+
+    strings = {
+        'FR': {
+            'help': '**$wsrun <id> [-f]** : Lance une étoile blanche et attribue les rôles correspondants. N\'utilisez -f que pour forcer une taille de groupe de WS invalide',
+            'description': 'Change l\'état d\'une étoile blanche',
+            'bad_wsid': '"%s" n\'est pas un ID de WS valide. Vous pouvez récupérer les IDs de WS avec la commande `$wslist`',
+            'foreign_ws': 'La WS n°%d n\'est pas dans ce groupe. Utilisez `$wslist` pour voir les IDs de WS',
+            'unknown_ws': 'La WS n°%d est inconnue. Utilisez `$wslist` pour voir les IDs de WS',
+            'bad_state': 'La WS a déjà été lancée ou est déjà terminée',
+            'bad_rostersize': '%d joueurs sont inscrits à cette WS, ce qui ne correspond pas aux tailles standards 5, 10 ou 15 joueurs. Si c\'est normal, relancez cette commande avec l\'option `-f`',
+            'no_wsrole': 'Il n\'y a aucun rôle associé aux joueurs de la WS %d (*%s:ws%d*)',
+            'no_leadrole': 'Il n\'y a aucun rôle associé au lead de la WS %d (*%s:lead%d*)',
+            'done': 'La WS a bien été lancée !',
+        }
+    }
+
+class cmd_wsend (Bot9000Command):
+    name = 'wsend'
+    minimum_role = 'responsible'
+    arguments = ('wsid', )
+    parser = None
+
+    @classmethod
+    async def run(cls, message, arguments, group, player, bot):
+        if not arguments.wsid.isdigit():
+            await message.channel(cls.string('bad_wsid', player.language) % arguments.wsid)
+            return
+        wsid = int(arguments.wsid)
+        try:
+            ws = WS.objects.get(id=wsid)
+            if ws.corp.group != player.corp.group:
+                await message.channel.send(cls.string('foreign_ws', player.language) % wsid)
+                return
+        except ObjectDoesNotExist:
+            await message.channel.send(cls.string('unknown_ws', player.language) % wsid)
+            return
+        if ws.state != 'ws.state.running':
+            await message.channel.send(cls.string('bad_state', player.language))
+            return
+        members = ws.players()
+        wsroleid = (ws.corp.ws1role if ws.slot == 1 else ws.corp.ws2role)
+        leadroleid = (ws.corp.lead1role if ws.slot == 1 else ws.corp.lead2role)
+        wsrole = discord.utils.get(message.guild.roles, id=wsroleid)
+        leadrole = discord.utils.get(message.guild.roles, id=leadroleid)
+        if wsrole is None:
+            await message.channel.send(cls.string('no_wsrole', player.language) % (ws.slot, ws.corp.name, ws.slot))
+        if leadrole is None:
+            await message.channel.send(cls.string('no_leadrole', player.language) % (ws.slot, ws.corp.name, ws.slot))
+        for player in members:
+            discorduser = discord.utils.get(message.guild.members, id=player.discordid)
+            roles = []
+            if wsrole is not None:
+                roles.append(wsrole)
+            if leadrole is not None and ws.lead == player:
+                roles.append(leadrole)
+            await discorduser.remove_roles(*roles)
+        ws.state = 'ws.state.ended'
+        ws.save()
+        ws.corp.relics += ws.score
+        ws.corp.save()
+        await message.channel.send(cls.string('done', player.language))
+
+    strings = {
+        'FR': {
+            'help': '**$wsrun <id> [-f]** : Lance une étoile blanche et attribue les rôles correspondants. N\'utilisez -f que pour forcer une taille de groupe de WS invalide',
+            'description': 'Change l\'état d\'une étoile blanche',
+            'bad_wsid': '"%s" n\'est pas un ID de WS valide. Vous pouvez récupérer les IDs de WS avec la commande `$wslist`',
+            'foreign_ws': 'La WS n°%d n\'est pas dans ce groupe. Utilisez `$wslist` pour voir les IDs de WS',
+            'unknown_ws': 'La WS n°%d est inconnue. Utilisez `$wslist` pour voir les IDs de WS',
+            'bad_state': 'La WS n\'est pas en cours',
+            'bad_rostersize': '%d joueurs sont inscrits à cette WS, ce qui ne correspond pas aux tailles standards 5, 10 ou 15 joueurs. Si c\'est normal, relancez cette commande avec l\'option `-f`',
+            'no_wsrole': 'Il n\'y a aucun rôle associé aux joueurs de la WS %d (*%s:ws%d*)',
+            'no_leadrole': 'Il n\'y a aucun rôle associé au lead de la WS %d (*%s:lead%d*)',
+            'done': 'La WS a bien été terminée !',
         }
     }

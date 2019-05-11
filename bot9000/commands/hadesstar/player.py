@@ -19,17 +19,17 @@ class cmd_playerinfo (Bot9000Command):
             if player.discordid is not None:
                 targetplayer = player
             else:
-                await bot.send_message(message.channel, cls.string('not_registered', player.language))
+                await message.channel.send(cls.string('not_registered', player.language))
                 return
         else:
             try:
                 targetplayer = Player.objects.get(name=arguments.user)
             except ObjectDoesNotExist:
-                await bot.send_message(message.channel, cls.string('unknown_player', player.language) % arguments.user)
+                await message.channel.send(cls.string('unknown_player', player.language) % arguments.user)
                 return
         all = (not arguments.corp) and (not arguments.timezone) and (not arguments.language) and (not arguments.level) and (not arguments.rslevel) and (not arguments.influence)
         if not targetplayer.corp.group == player.corp.group and not targetplayer.publicprofile:
-            await bot.send_message(message.channel, cls.string('not_public', player.language) % targetplayer.name)
+            await message.channel.send(cls.string('not_public', player.language) % targetplayer.name)
             return
         response = cls.string('introduction', player.language) % targetplayer.name
         if all or arguments.corp:
@@ -44,7 +44,7 @@ class cmd_playerinfo (Bot9000Command):
             response += cls.string('language', player.language) % targetplayer.language
         if all or arguments.timezone:
             response += cls.string('timezone', player.language) % (targetplayer.timezone, targetplayer.utcoffset())
-        await bot.send_message(message.channel, response)
+        await message.channel.send(response)
 
 
     strings = {
@@ -76,12 +76,12 @@ class cmd_setinfo (Bot9000Command):
         if arguments.timezone is not None:
             tzname = arguments.timezone
             if tzname not in pytz.common_timezones:
-                await bot.send_message(message.channel, cls.string('bad_timezone', player.language) % tzname)
+                await message.channel.send(cls.string('bad_timezone', player.language) % tzname)
             else:
                 player.timezone = tzname
         if arguments.language is not None:
             if len(arguments.language) != 2:
-                await bot.send_message(message.channel, cls.string('bad_language', player.language))
+                await message.channel.send(cls.string('bad_language', player.language))
             else:
                 player.language = arguments.language.upper()
         update = PlayerUpdate.new(player)
@@ -93,27 +93,27 @@ class cmd_setinfo (Bot9000Command):
                     update.rslevel = level
                     updated = True
                 else:
-                    await bot.send_message(message.channel, cls.string('bad_rslevel', player.language))
+                    await message.channel.send(cls.string('bad_rslevel', player.language))
             else:
-                await bot.send_message(message.channel, cls.string('bad_rslevel', player.language))
+                await message.channel.send(cls.string('bad_rslevel', player.language))
         if arguments.level is not None:
             if arguments.level.isdigit():
                 level = int(arguments.level)
                 update.level = level
                 updated = True
             else:
-                await bot.send_message(message.channel, cls.string('bad_level', player.language))
+                await message.channel.send(cls.string('bad_level', player.language))
         if arguments.influence is not None:
             if arguments.influence.isdigit():
                 influence = int(arguments.influence)
                 update.influence = influence
                 updated = True
             else:
-                await bot.send_message(message.channel, cls.string('bad_influence', player.language))
+                await message.channel.send(cls.string('bad_influence', player.language))
         player.save()
         if updated:
             update.save()
-        await bot.send_message(message.channel, cls.string('done', player.language))
+        await message.channel.send(cls.string('done', player.language))
 
     strings = {
         'FR': {

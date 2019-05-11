@@ -7,6 +7,7 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
+from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from main.models import *
 from main.views.account import *
@@ -20,9 +21,11 @@ def dashboard(request, error=None):
 		player = Player.objects.get(user__id=user.id)
 	except ObjectDoesNotExist:
 		return home(request, 'Utilisateur invalide')
+	wsmembers = WSPlayer.objects.filter(~Q(ws__state='ws.state.ended'), update__player=player)
+	wss = [wsmember.ws for wsmember in wsmembers]
 	data = {
 		'title': 'Hades9000 : Tableau de bord',
-		'player': player, 'error': error,
+		'player': player, 'wss': wss, 'error': error,
 	}
 	return render(request, 'main/dashboard.html', data)
 
@@ -39,7 +42,7 @@ def editprofile(request, warnings=[], error=None):
 	print(player.orderedships())
 	data = {
 		'title': 'Hades9000 : Modification du profil', 'error': error, "warnings": warnings,
-		'user': user, 'player': player, 'modules': modules, 'modnames': module_names,
+		'user': user, 'player': player, 'modules': modules, 'modnames': module_names[player.language],
 		'maxmodnum': maxmodnum, 'timezones': pytz.common_timezones,
 	}
 	return render(request, 'main/editprofile.html', data)
@@ -67,11 +70,7 @@ def updateprofile(request):
 		player.save()
 		return editprofile(request)
 	levels = player.shiplevels()
-	if player.stats().date >= datetime.datetime.now().astimezone(player.tzinfo()) - datetime.timedelta(hours=1):
-		update = player.stats()
-		update.date = datetime.datetime.now().astimezone(player.tzinfo())
-	else:
-		update = PlayerUpdate(player=player, date=datetime.datetime.now().astimezone(player.tzinfo()))
+	update = PlayerUpdate.new(player)
 	if request.POST.get('password').strip() != '':
 		oldpass = request.POST.get('oldpass')
 		password = request.POST.get('password')
@@ -124,15 +123,15 @@ def updateprofile(request):
 				ship[modtype].append(request.POST.get('ship%d_%s%d' % (shipid, modtype, j)))
 		ships.append(ship)
 	if 'addbattleship' in request.POST:
-		newtype = 'ship.battleship'
+		newtype = 'ship.player.battleship'
 	elif 'addminer' in request.POST:
-		newtype = 'ship.miner'
+		newtype = 'ship.player.miner'
 	elif 'addtransport' in request.POST:
-		newtype = 'ship.transport'
+		newtype = 'ship.player.transport'
 	else:
 		newtype = None
 	if newtype is not None:
-		ship = {'name': '%s #%d' % (ship_names[newtype], player.nextshipid), 'id': player.nextshipid, 'type': newtype, 'trade': [], 'mining': [], 'weapon': [], 'shield': [], 'support': []}
+		ship = {'name': '%s #%d' % (ship_names[player.language][newtype], player.nextshipid), 'id': player.nextshipid, 'type': newtype, 'trade': [], 'mining': [], 'weapon': [], 'shield': [], 'support': []}
 		player.nextshipid += 1
 		player.save()
 		for modtype in player.availablemodules()[newtype]:
@@ -189,7 +188,7 @@ def profile(request, username, update=None, error=None):
 	maxmodnum = max([len(available[shiptype]) for shiptype in available])
 	data = {
 		'title': 'Hades9000 : Profil de %s' % user.name, 'error': error,
-		'user': user, 'player': player, 'modules': modules, 'modnames': module_names,
+		'user': user, 'player': player, 'modules': modules, 'modnames': module_names[player.language],
 		'maxmodnum': maxmodnum, 'stats': stats,
 	}
 	return render(request, 'main/profile.html', data)

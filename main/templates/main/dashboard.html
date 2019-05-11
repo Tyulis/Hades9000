@@ -1,4 +1,16 @@
 {% extends 'main/user.html' %}
+{% load static %}
+{% load dictvalues %}
+{% load timezone %}
 
-{% block content %}
-{% endblock content %}
+{% block 'content' %}
+    <h1>{{player.name}}</h1>
+    <h4><a href="{% url 'corporation' player.corp.name %}">{{player.corp.name}}</a></h4>
+    <h4>Etoiles blanches en cours :</h4>
+    {% for ws in wss %}
+        <p class="comment">
+            <a href="{% url 'ws' ws.id %}">{{ws.name}}</a> : <a href="{% url 'corporation' ws.corp.name %}">{{ws.corp.name}}</a> <span style="color:#66AAFF">{{ws.score}}</span> - <span style="color:#FF5522">{{ws.opponentscore}}</span> {{ws.opponentcorp}}<br />
+            {{ws.start|localize:player.utcoffset}} - {{ws.end|localize:player.utcoffset}}
+        </p>
+    {% endfor %}
+{% endblock 'content' %}

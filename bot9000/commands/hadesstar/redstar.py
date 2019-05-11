@@ -16,11 +16,11 @@ class cmd_rsin (Bot9000Command):
     @classmethod
     async def run(cls, message, arguments, group, player, bot):
         if not arguments.level.isdigit():
-            await bot.send_message(message.channel, cls.string('bad_level', player.language))
+            await message.channel.send(cls.string('bad_level', player.language))
             return
         level = int(arguments.level)
         if not (1 <= level <= 10):
-            await bot.send_message(message.channel, cls.string('bad_level', player.language))
+            await message.channel.send(cls.string('bad_level', player.language))
             return
         try:
             rs = RedStar.objects.get(level=level, group=group)
@@ -29,7 +29,7 @@ class cmd_rsin (Bot9000Command):
         try:
             already_rs = RedStar.objects.get(Q(player1=player) | Q(player2=player) | Q(player3=player) | Q(player4=player))
             print(already_rs)
-            await bot.send_message(message.channel, cls.string('already_in', player.language) % already_rs.level)
+            await message.channel.send(cls.string('already_in', player.language) % already_rs.level)
             return
         except ObjectDoesNotExist:
             pass
@@ -42,16 +42,16 @@ class cmd_rsin (Bot9000Command):
         elif rs.player4 is None:
             rs.player4 = player
         else:
-            await bot.send_message(message.channel, cls.string('queue_full', player.language))
+            await message.channel.send(cls.string('queue_full', player.language))
             return
         player.rsready = False
         rs.save()
         users = [discord.utils.get(message.guild.members, id=rsplayer.discordid) for rsplayer in (rs.player1, rs.player2, rs.player3, rs.player4) if rsplayer is not None]
         players = '\n'.join(['- %s' % (discorduser.nick if discorduser.nick is not None else discorduser.name) for discorduser in users])
-        await bot.send_message(message.channel, cls.string('done', player.language) % (level, players))
+        await message.channel.send(cls.string('done', player.language) % (level, players))
         if len(rs.players()) >= 4:
             pings = ' '.join([discord.utils.get(message.guild.members, id=rsplayer.discordid).mention for rsplayer in rs.players()])
-            await bot.send_message(message.channel, cls.string('full_pings', group.language) % pings)
+            await message.channel.send(cls.string('full_pings', group.language) % pings)
 
 
     strings = {
@@ -77,15 +77,16 @@ class cmd_rsout (Bot9000Command):
         try:
             rs = RedStar.objects.get(Q(player1=player) | Q(player2=player) | Q(player3=player) | Q(player4=player))
         except ObjectDoesNotExist:
-            await bot.send_message(message.channel, cls.string('no_rs', player.language))
+            await message.channel.send(cls.string('no_rs', player.language))
             return
         player.rsready = False
         player.save()
         players = [rsplayer for rsplayer in (rs.player1, rs.player2, rs.player3, rs.player4) if rsplayer not in (player, None)]
         if len(players) <= 0:
-            await bot.send_message(message.channel, cls.string('queue_deleted', player.language) % rs.level)
+            await message.channel.send(cls.string('queue_deleted', player.language) % rs.level)
             rs.delete()
             return
+        rs.resetplayers()
         if len(players) >= 1:
             rs.player1 = players[0]
         if len(players) >= 2:
@@ -96,7 +97,7 @@ class cmd_rsout (Bot9000Command):
             rs.player4 = players[3]
         rs.save()
         discorduser = discord.utils.get(message.guild.members, id=player.discordid)
-        await bot.send_message(message.channel, cls.string('done', player.language) % (discorduser.mention, rs.level))
+        await message.channel.send(cls.string('done', player.language) % (discorduser.mention, rs.level))
 
     strings = {
         'FR': {
@@ -107,6 +108,39 @@ class cmd_rsout (Bot9000Command):
             'done': '%s a quitté la file pour RS%d',
         }
     }
+
+class cmd_rsshout (Bot9000Command):
+    name = 'rsshout'
+    minimum_role = 'member'
+    arguments = ()
+    parser = None
+
+    @classmethod
+    async def run(cls, message, arguments, group, player, bot):
+        try:
+            rs = RedStar.objects.get(Q(player1=player) | Q(player2=player) | Q(player3=player) | Q(player4=player))
+        except ObjectDoesNotExist:
+            await message.channel.send(cls.string('no_rs', player.language))
+            return
+        role = discord.utils.get(message.guild.roles, id=group.rsroles()[rs.level - 1])
+        if role is None:
+            members = {update.player for update in PlayerUpdate.objects.filter(rslevel=rs.level)}
+            discordusers = [discord.utils.get(message.guild.members, id=member.discordid) for member in members]
+            pings = ' '.join([user.mention for user in discordusers])
+            await message.channel.send(cls.string('response', player.language) % (pings, rs.level))
+        else:
+            await message.channel.send(cls.string('response', player.language) % (role.mention, rs.level))
+
+
+    strings = {
+        'FR': {
+            'help': '**$rsping** : Mentionne tous les joueurs de la file',
+            'description': 'Mentionne tous les joueurs de la file',
+            'no_rs': 'Vous n\'êtes dans aucune file de RS',
+            'response': '%s, une RS%d va être lancée !',
+        }
+    }
+
 
 class cmd_rsping (Bot9000Command):
     name = 'rsping'
@@ -119,14 +153,14 @@ class cmd_rsping (Bot9000Command):
         try:
             rs = RedStar.objects.get(Q(player1=player) | Q(player2=player) | Q(player3=player) | Q(player4=player))
         except ObjectDoesNotExist:
-            await bot.send_message(message.channel, cls.string('no_rs', player.language))
+            await message.channel.send(cls.string('no_rs', player.language))
             return
         players = rs.players()
         queue = ''
         for rsplayer in players:
             discorduser = discord.utils.get(message.guild.members, id=player.discordid)
             queue += '- %s\n' % discorduser.mention
-        await bot.send_message(message.channel, cls.string('done', player.language) % (rs.level, queue))
+        await message.channel.send(cls.string('done', player.language) % (rs.level, queue))
 
     strings = {
         'FR': {
@@ -147,26 +181,26 @@ class cmd_rsqueue (Bot9000Command):
     async def run(cls, message, arguments, group, player, bot):
         if arguments.level is not None:
             if not arguments.level.isdigit():
-                await bot.send_message(message.channel, cls.string('bad_level', player.language))
+                await message.channel.send(cls.string('bad_level', player.language))
                 return
             level = int(arguments.level)
             if not (1 <= level <= 10):
-                await bot.send_message(message.channel, cls.string('bad_level', player.language))
+                await message.channel.send(cls.string('bad_level', player.language))
                 return
             try:
                 rs = RedStar.objects.get(group=group, level=level)
             except ObjectDoesNotExist:
-                await bot.send_message(message.channel, cls.string('no_rs', player.language))
+                await message.channel.send(cls.string('no_rs', player.language))
                 return
         else:
             try:
                 rs = RedStar.objects.get(Q(player1=player) | Q(player2=player) | Q(player3=player) | Q(player4=player))
             except ObjectDoesNotExist:
-                await bot.send_message(message.channel, cls.string('no_rs', player.language))
+                await message.channel.send(cls.string('no_rs', player.language))
                 return
         users = [discord.utils.get(message.guild.members, id=rsplayer.discordid) for rsplayer in (rs.player1, rs.player2, rs.player3, rs.player4) if rsplayer is not None]
         players = '\n'.join(['- %s %s' % (discorduser.nick if discorduser.nick is not None else discorduser.name, ':white_check_mark:' if rsplayer.rsready else ':arrow_forward:') for rsplayer, discorduser in zip(rs.players(), users)])
-        await bot.send_message(message.channel, cls.string('done', player.language) % (rs.level, players))
+        await message.channel.send(cls.string('done', player.language) % (rs.level, players))
 
     strings = {
         'FR': {
@@ -189,25 +223,25 @@ class cmd_rsready (Bot9000Command):
         try:
             rs = RedStar.objects.get(Q(player1=player) | Q(player2=player) | Q(player3=player) | Q(player4=player))
         except ObjectDoesNotExist:
-            await bot.send_message(message.channel, cls.string('no_rs', player.language))
+            await message.channel.send(cls.string('no_rs', player.language))
             return
         if player.rsready:
-            await bot.send_message(message.channel, cls.string('already_ready', player.language))
+            await message.channel.send(cls.string('already_ready', player.language))
             return
         player.rsready = True
         player.save()
         if any([rsplayer.rsready for rsplayer in rs.players()]):
             discorduser = discord.utils.get(message.guild.members, id=player.discordid)
             username = discorduser.nick if discorduser.nick is not None else discorduser.name
-            await bot.send_message(message.channel, cls.string('ready', player.language) % username)
+            await message.channel.send(cls.string('ready', player.language) % username)
         else:
             pings = ' '.join([discord.utils.get(message.guild.members, id=rsplayer.discordid).mention for rsplayer in rs.players()])
             discorduser = discord.utils.get(message.guild.members, id=player.discordid)
             username = discorduser.nick if discorduser.nick is not None else discorduser.name
-            await bot.send_message(message.channel, cls.string('ready_ping', player.language) % (pings, username))
+            await message.channel.send(cls.string('ready_ping', player.language) % (pings, username))
         if all([rsplayer.rsready for rsplayer in rs.players()]):
             pings = ' '.join([discord.utils.get(message.guild.members, id=rsplayer.discordid).mention for rsplayer in rs.players()])
-            await bot.send_message(message.channel, cls.string('rs_run', player.language) % (pings, rs.level))
+            await message.channel.send(cls.string('rs_run', player.language) % (pings, rs.level))
             rs.delete()
 
     strings = {
@@ -233,15 +267,15 @@ class cmd_rsunready (Bot9000Command):
         try:
             rs = RedStar.objects.get(Q(player1=player) | Q(player2=player) | Q(player3=player) | Q(player4=player))
         except ObjectDoesNotExist:
-            await bot.send_message(message.channel, cls.string('no_rs', player.language))
+            await message.channel.send(cls.string('no_rs', player.language))
             return
         if not player.rsready:
-            await bot.send_message(message.channel, cls.string('not_ready', player.language))
+            await message.channel.send(cls.string('not_ready', player.language))
             return
         player.rsready = False
         player.save()
         discorduser = discord.utils.get(message.guild.members, id=player.discordid)
-        await bot.send_message(message.channel, cls.string('unready', player.language) % (discorduser.nick if discorduser.nick is not None else discorduser.name))
+        await message.channel.send(cls.string('unready', player.language) % (discorduser.nick if discorduser.nick is not None else discorduser.name))
 
     strings = {
         'FR': {
@@ -262,12 +296,12 @@ class cmd_rsclearafk (Bot9000Command):
     @classmethod
     async def run(cls, message, arguments, group, player, bot):
         if not player.rsready:
-            await bot.send_message(message.channel, cls.string('not_ready', player.language))
+            await message.channel.send(cls.string('not_ready', player.language))
             return
         try:
             rs = RedStar.objects.get(Q(player1=player) | Q(player2=player) | Q(player3=player) | Q(player4=player))
         except ObjectDoesNotExist:
-            await bot.send_message(message.channel, cls.string('no_rs', player.language))
+            await message.channel.send(cls.string('no_rs', player.language))
             return
         outplayers = [rsplayer for rsplayer in rs.players() if not rsplayer.ready and rsplayer != player]
         outusers = [discord.utils.get(message.guild.members, id=rsplayer.discordid) for rsplayer in outusers]
@@ -285,7 +319,7 @@ class cmd_rsclearafk (Bot9000Command):
         player.rsready = False
         player.save()
         names = ' '.join([user.nick if user.nick is not None else user.name for user in outusers])
-        await bot.send_message(message.channel, cls.string('done', player.language) % names)
+        await message.channel.send(cls.string('done', player.language) % names)
 
     strings = {
         'FR': {

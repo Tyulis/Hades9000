@@ -14,6 +14,7 @@
         <form action="{% url 'registeredws' %}" method="POST">
             {% csrf_token %}
             <input type="hidden" name="wsid" value="{{ws.id}}" />
+            <input type="checkbox" name="lead" {% if ws.lead == player %}checked="checked"{% endif %}/>Commander l'étoile blanche<br />
             <span class="tooltip">Disponibilités
             <span class="tooltiptext_right">
                 Niveaux de disponibilité : <br />
@@ -29,8 +30,8 @@
                 {{day|dateformat}}<br />
                 <div class="dispoday">
                     {% for prio in 6|times %}
-                        <input type="radio" name="dispo_{{day.day}}-{{day.month}}-{{day.year}}_{{day.hour}}" value="{{prio}}" id="dispo_{{day.day}}-{{day.month}}-{{day.year}}_{{day.hour}}_p{{prio}}" class="priobutton priobutton{{prio|add:1}}" {% if prio == dispos|dictget:day %}checked="checked"{% endif %}/>
-                        <label for="dispo_{{day.day}}-{{day.month}}-{{day.year}}_{{day.hour}}_p{{prio}}" class="priolabel priolabel{{prio|add:1}}">
+                        <input type="radio" name="dispo_{{day.day}}-{{day.month}}-{{day.year}}" value="{{prio}}" id="dispo_{{day.day}}-{{day.month}}-{{day.year}}_p{{prio}}" class="priobutton priobutton{{prio|add:1}}" {% if prio == dispos|dictget:day %}checked="checked"{% endif %}/>
+                        <label for="dispo_{{day.day}}-{{day.month}}-{{day.year}}_p{{prio}}" class="priolabel priolabel{{prio|add:1}}">
                             {{prio|add:1}}
                         </label>
                     {% endfor %}

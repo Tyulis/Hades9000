@@ -8,7 +8,7 @@
         <h2 class="error">{{error}}</h2>
     {% else %}
         <h1>{{group.name}}</h1>
-        {% if player.corp.group.id == group.id and player.groupadmin %}
+        {% if player.corp.group.id == group.id and player.admin %}
             <a href="{% url 'editgroup' %}" class="editbutton">Modifier</a>
         {% endif %}
         <h3>Corporations membres</h3>

@@ -22,14 +22,14 @@ class cmd_help (Bot9000Command):
             command = bot.get_command(arguments.command, group)
             if isinstance(command, str):
                 if command == 'unknown':
-                    await bot.send_message(message.channel, cls.string('bad_command', player.language) % arguments.command)
+                    await message.channel.send(cls.string('bad_command', player.language) % arguments.command)
                 elif command.startswith('inactive'):
                     module = command.split()[1]
-                    await bot.send_message(message.channel, cls.string('inactive_command', player.language) % (arguments.command, module, bot.make_url('editgroup'), module))
+                    await message.channel.send(cls.string('inactive_command', player.language) % (arguments.command, module, bot.make_url('editgroup'), module))
                 return
             else:
                 response = cls.string('command_introduction', player.language) % command.name + command.description(player.language) + '\n' + command.help(player.language)
-        await bot.send_message(message.channel, response)
+        await bot.send_split(message.channel, response)
 
 
     strings = {

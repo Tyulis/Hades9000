@@ -91,7 +91,7 @@ class Bot9000PrintCommand (Bot9000Command):
     @classmethod
     async def run(cls, message, arguments, group, player, bot):
         argsdict = {argument: arguments.__dict__[argument] for argument in arguments.__dict__}
-        await bot.send_message(message.channel, cls.string('message', player.language) % argsdict)
+        await message.channel.send(cls.string('message', player.language) % argsdict)
 
     strings = {
         'EN': {

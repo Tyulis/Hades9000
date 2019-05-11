@@ -7,9 +7,10 @@
         <h2 class="error">{{error}}</h2>
     {% else %}
         <h2>Lancement d'une étoile blanche</h2>
-        <form action="{% url 'addws' %}" method="POST">
+        <form action="{% url 'addws' corp.name %}" method="POST">
             {% csrf_token %}
             Nom : <input type="text" name="name" /><br />
+            Emplacement : <input type="number" name="slot" min="1" max="2" step="1" default="1" /><br />
             Lancement prévu : <input type="date" name="startdate" /><input type="time" name="starttime" /><br />
             Commentaire : <br />
             <textarea name="comment" cols="50" rows="6"></textarea><br />

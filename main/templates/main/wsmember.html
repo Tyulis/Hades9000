@@ -12,8 +12,7 @@
             {% with dayindex=forloop.counter0 %}
             {{day|dateformat}}<br />
             <div class="dispoday">
-                <div class="priocase{{dispos|dictget:hour|add:1}} priolabel">{{dispos|dictget:hour|add:1}}</div>
-                <p class="dispo_subtitle">{{day.day}}</p>
+                <div class="priocase{{dispos|dictget:day|add:1}} priolabel">{{dispos|dictget:day|add:1}}</div>
             </div>
             {% endwith %}
         {% endfor %}
