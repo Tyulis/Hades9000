@@ -37,6 +37,7 @@ COMMANDS = {
         cmd_settech.name: cmd_settech,
         cmd_techlist.name : cmd_techlist,
         cmd_ships.name: cmd_ships,
+        cmd_modinfo.name: cmd_modinfo,
         '__mandatory': True,
     },
     'whitestar': {

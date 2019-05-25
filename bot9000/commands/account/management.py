@@ -361,7 +361,7 @@ class cmd_groupinfo (Bot9000Command):
             response += cls.string('managementchannel', player.language) % managementchannel.mention
         else:
             response += cls.string('no_managementchannel', player.language)
-        custom = gorup.getcustomcommands()
+        custom = group.getcustomcommands()
         if len(custom) > 0:
             response += cls.string('customcommands', player.language) % ', '.join(custom.keys())
         else:
@@ -432,7 +432,7 @@ class cmd_update (Bot9000Command):
 
     @classmethod
     async def run(cls, message, arguments, group, player, bot):
-        bot.setup_group(group)
+        await bot.setup_group(group)
         await message.channel.send(cls.string('done', player.language))
 
     strings = {

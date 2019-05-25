@@ -25,7 +25,6 @@
             <input type="password" name="oldpass" placeholder="Ancien mot de passe" /><br />
             <input type="password" name="password" placeholder="Nouveau mot de passe" /><br />
             <input type="password" name="passconfirm" placeholder="Confirmation du mot de passe" /><br />
-            <input type="checkbox" name="captain" {% if player.captain %}checked="checked"{% endif %} {% if not player.admin and not player.captain %}disabled{% endif %} />Capitaine<br />
             <input type="checkbox" name="publicprofile" {% if player.publicprofile %}checked="checked"{% endif %} />Rendre le profil public<br />
             Niveau d'XP : <input type="number" name="level" value="{{player.level}}" min="1" max="1000" /><br />
             Influence : <input type="number" name="influence" value="{{player.influence}}" min="0" max="100000" /><br />

@@ -307,7 +307,7 @@ class cmd_wsrun (Bot9000Command):
     strings = {
         'FR': {
             'help': '**$wsrun <id> [-f]** : Lance une étoile blanche et attribue les rôles correspondants. N\'utilisez -f que pour forcer une taille de groupe de WS invalide',
-            'description': 'Change l\'état d\'une étoile blanche',
+            'description': 'Lance une étoile blanche',
             'bad_wsid': '"%s" n\'est pas un ID de WS valide. Vous pouvez récupérer les IDs de WS avec la commande `$wslist`',
             'foreign_ws': 'La WS n°%d n\'est pas dans ce groupe. Utilisez `$wslist` pour voir les IDs de WS',
             'unknown_ws': 'La WS n°%d est inconnue. Utilisez `$wslist` pour voir les IDs de WS',
@@ -368,7 +368,7 @@ class cmd_wsend (Bot9000Command):
     strings = {
         'FR': {
             'help': '**$wsrun <id> [-f]** : Lance une étoile blanche et attribue les rôles correspondants. N\'utilisez -f que pour forcer une taille de groupe de WS invalide',
-            'description': 'Change l\'état d\'une étoile blanche',
+            'description': 'Termine une étoile blanche',
             'bad_wsid': '"%s" n\'est pas un ID de WS valide. Vous pouvez récupérer les IDs de WS avec la commande `$wslist`',
             'foreign_ws': 'La WS n°%d n\'est pas dans ce groupe. Utilisez `$wslist` pour voir les IDs de WS',
             'unknown_ws': 'La WS n°%d est inconnue. Utilisez `$wslist` pour voir les IDs de WS',

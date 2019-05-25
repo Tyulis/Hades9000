@@ -1,5 +1,6 @@
 import math
 from .moduledata import _MODULE_DATA
+from .modulestats import *
 from .shipdata import _SHIP_DATA
 
 modules = {'trade': [], 'mining': [], 'weapon': [], 'shield': [], 'support': []}
@@ -250,7 +251,7 @@ def module_score(code, level):
 		return 0
 	blueprints = module_data(code, level, 'UnlockBlueprints')
 	credits = sum([module_data(code, tlevel, 'UnlockPrice') for tlevel in range(1, level + 1)])
-	rslevel = module_data(code, 1, 'AwardLevel') + 2
+	rslevel = module_data(code, 1, 'AwardLevel')
 	#print("%s : %.3f, %.3f, %.1f" % (code, credits_score(credits), blueprints_score(blueprints), (1 + rslevel / 5)))
 	return int(((credits_score(credits) + blueprints_score(blueprints)) / 2) * (1 + rslevel / 5))
 

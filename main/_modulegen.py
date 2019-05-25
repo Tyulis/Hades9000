@@ -73,7 +73,32 @@ gameids = {
     'InterceptorMBattery': 'module.cerberus.interceptor-mass-battery',
 }
 
-USELESS_COLUMNS = ('Name', 'Icon', 'TID', 'TID_Description', 'WeaponFx', 'ClientActivationFx', 'ActivateFX', 'ActivateFXStaysInPlace', 'SustainedFx', 'ScaleEffectsWithZoom', 'WeaponEffectType')
+USELESS_COLUMNS = ('Name', 'Icon', 'TID', 'TID_Description', 'WeaponFx', 'ClientActivationFx', 'ActivateFX', 'ActivateFXStaysInPlace', 'SustainedFX', 'ScaleEffectsWithZoom', 'WeaponEffectType')
+
+def data_convert(colname, value):
+    if value is None:
+        return (colname, value)
+    if colname == 'APTPIOTTP':
+        converted = value / 5
+    elif colname == 'FuelUseIncrease':
+        converted = value / 5
+    elif colname == 'AllowedStarTypes':
+        converted = 'YS' if value == 0 else 'RS'
+    elif colname == 'AwardLevel':
+        converted = value + 1
+    elif 'EffectDurationx10' in colname:
+        converted = value / 10
+    elif 'EffectRadius' in colname:
+        converted = round(value / 10, 1)
+    elif colname == 'MiningSpeedModifierPct':
+        converted = value / 100
+    elif colname in ('TimeWarpFactor', 'TradeStationDeliverReward'):
+        converted = value / 100
+    elif colname == 'ActivationPrepWS':
+        converted = value * 600
+    else:
+        converted = value
+    return colname, converted
 
 def generate(infile, outfile):
     with open(infile, 'r') as f:
@@ -90,8 +115,14 @@ def generate(infile, outfile):
         if code is not None:
             lastcode = gameids[code]
             modules[gameids[code]] = []
-        data = {colnames[i]: linedata[i] for i in range(len(colnames)) if colnames[i] not in USELESS_COLUMNS}
+            level = 1
+        data = dict([data_convert(colnames[i], linedata[i]) for i in range(len(colnames)) if colnames[i] not in USELESS_COLUMNS])
+        data['Level'] = level
+        level += 1
         modules[lastcode].append(data)
+    for module in modules:
+        if modules[module][0]['SlotType'] == 'Support':
+            modules[module][0]['AwardLevel'] += 1
     with open(outfile, 'w') as f:
         f.write('_MODULE_DATA = ')
         f.write(pprint.pformat(modules))
