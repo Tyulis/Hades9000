@@ -11,6 +11,7 @@ from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from main.models import *
 from main.views.account import *
+from main.moduledata import _MODULE_DATA
 
 
 def dashboard(request, error=None):
@@ -40,10 +41,11 @@ def editprofile(request, warnings=[], error=None):
 	available = player.availablemodules()
 	maxmodnum = max([len(available[shiptype]) for shiptype in available])
 	print(player.orderedships())
+	modmaxlevels = {name: len(_MODULE_DATA[name]) for name in _MODULE_DATA}
 	data = {
 		'title': 'Hades9000 : Modification du profil', 'error': error, "warnings": warnings,
 		'user': user, 'player': player, 'modules': modules, 'modnames': module_names[player.language],
-		'maxmodnum': maxmodnum, 'timezones': pytz.common_timezones,
+		'maxmodnum': maxmodnum, 'timezones': pytz.common_timezones, 'modmaxlevels': modmaxlevels,
 	}
 	return render(request, 'main/editprofile.html', data)
 

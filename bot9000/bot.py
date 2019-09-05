@@ -35,6 +35,16 @@ class Hades9000Bot (discord.Client):
             print(cmd)
             cmd['runner'] = CustomCommandRunner(cmdname, cmd['minimum_role'], cmd['arguments'], cmd['code'], group)
         self.customcmds[group.id] = cmds
+        guild = discord.utils.get(self.guilds, id=group.discordid)
+        for player in group.members():
+            discorduser = discord.utils.get(guild.members, id=player.discordid)
+            roleids = [role.id for role in discorduser.roles]
+            player.admin = group.adminrole in roleids
+            player.responsible = group.resporole in roleids
+            player.moderator = group.modorole in roleids
+            if group.memberrole not in roleids:
+                player.corp = None
+            player.save()
         #if group.notifications:
         #    await self.send_notification(group, self.string('online_notification', group.language))
 
@@ -49,6 +59,18 @@ class Hades9000Bot (discord.Client):
                 player = dummygp
                 player.language = group.language
             await self.run_command(message, group, player)
+
+    async def on_message_edit(self, before, after):
+        if after.author == self.user:
+            return
+        if after.content.strip().startswith('$') and before.content != after.content:
+            try: group = CorpGroup.objects.get(discordid=after.guild.id)
+            except ObjectDoesNotExist: group = dummygp
+            try: player = Player.objects.get(discordid=after.author.id)
+            except ObjectDoesNotExist:
+                player = dummygp
+                player.language = group.language
+            await self.run_command(after, group, player)
 
     async def on_member_join(self, member):
         try:
@@ -69,6 +91,22 @@ class Hades9000Bot (discord.Client):
         if group.enable_leavenotif:
             print(member.guild)
             await self.send_notification(group, self.string('leave_notif', group.language) % member.name)
+
+    async def on_member_update(self, before, after):
+        if before.roles == after.roles:
+            return
+        try: group = CorpGroup.objects.get(discordid=after.guild.id)
+        except ObjectDoesNotExist: return
+        try: player = Player.objects.get(discordid=after.id)
+        except ObjectDoesNotExist: return
+        print("Update of %s" % player.name)
+        roleids = [role.id for role in after.roles]
+        player.admin = group.adminrole in roleids
+        player.responsible = group.resporole in roleids
+        player.moderator = group.modorole in roleids
+        if group.memberrole not in roleids:
+            player.corp = None
+        player.save()
 
     async def run_command(self, message, group, player):
         discorduser = message.author
@@ -95,6 +133,7 @@ class Hades9000Bot (discord.Client):
         parser = command.parser
         try:
             arguments = parser.parse_args(shlex.split(message.content.partition(' ')[2]))
+            print(commandname, arguments)
             await command.run(message, arguments, group, player, self)
         except ArgumentError:
             await message.channel.send(self.string('bad_arguments', player.language) % commandname)

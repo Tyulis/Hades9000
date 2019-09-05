@@ -18,7 +18,7 @@
         {% if player.corp.group.id == group.id or group.publicmembers %}
         <div id="memberdiv">
             <table class="memberstable">
-                <tr><td class="memberstablehcell">Niveau</td><td class="memberstablehcell">Nom</td><td class="memberstablehcell">Influence</td><td class="memberstablehcell">RS</td><td class="memberstablehcell">Corporation</td><td class="memberstablehcell">Admin</td><td class="memberstablehcell">Capitaine</td><td class="memberstablehcell">En WS</td></tr>
+                <tr><td class="memberstablehcell">Niveau</td><td class="memberstablehcell">Nom</td><td class="memberstablehcell">Influence</td><td class="memberstablehcell">RS</td><td class="memberstablehcell">Corporation</td><td class="memberstablehcell">Admin</td><td class="memberstablehcell">En WS</td></tr>
                 {% for member in group.members %}
                     <tr><td class="memberstablecell">{{member.level}}</td>
                         <td class="memberstablecell"><a href="{% url 'user' member.name %}">{{member.name}}</a></td>
@@ -26,7 +26,6 @@
                         <td class="memberstablecell rs{{member.rslevel}}">RS{{member.rslevel}}</td>
                         <td class="memberstablecell"><a href="{% url 'corporation' member.corp.name %}">{{member.corp.name}}</a></td>
                         <td class="memberstablecell">{{member.groupadmin}}</td>
-                        <td class="memberstablecell">{{member.captain}}</td>
                         <td class="memberstablecell">{{member.in_ws}}</td>
                     </tr>
                 {% endfor %}

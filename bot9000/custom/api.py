@@ -251,6 +251,9 @@ class PlayerCapsule (CustomCommandCapsule):
 		self.player = player
 		self.context = context
 
+	def name(self):
+		return self.player.name
+
 class WSCapsule (CustomCommandCapsule):
 	def __init__(self, ws, context):
 		self.ws = ws

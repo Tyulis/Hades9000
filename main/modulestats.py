@@ -71,6 +71,8 @@ column_names = {
         'RepairHullPointsPerSecond': 'Réparation',
         'ReqEnemyShipsInSector': 'Requiert des ennemis dans le secteur',
         'SalvageHullPercent': 'PV/ennemi',
+        'SalvageHullPercentWS': 'PV/ennemi (WS)',
+        'SalvageHullPercentBS': 'PV/ennemi (EB)',
         'ShieldRegenDelay': 'Délai de régénération',
         'ShieldStrength': 'Bouclier',
         'ShowBSInfo': 'Affichage des valeurs EB',
@@ -109,14 +111,14 @@ column_order = (
     'EffectDurationx10', 'EffectDurationx10WS', 'EffectDurationx10BS', 'EffectRadius', 'EffectRadiusWS', 'EffectRadiusBS',
     'DPS', 'MaxDPS', 'MaxDPSTime', 'MaxDPSTime_BS',
     'FuelUseIncrease', 'ActivationFuelCost',
-    'WhiteStarScore', 'BSScore',
+    'WhiteStarScore', 'BSScore', 'SalvageHullPercent', 'SalvageHullPercentWS', 'SalvageHullPercentBS',
 )
 
 ignore_values = (
     'PullShips', 'MineAllInSector', 'IsAOEOnlyShield', 'IsAreaShield',
     'IsBarrier', 'IsEMP', 'IsSupress', 'IsStealth', 'IsTeleport', 'IsTaunt',
     'JumpToSafety', 'Hide', 'HideSelection', 'DoNotAward',
-    'ShowBSInfo', 'ShowWSInfo', 'SwapLoadWithOtherTransport',
+    'ShowBSInfo', 'ShowWSInfo', 'SwapLoadWithOtherTransport', 'SpawnedShip',
     'TeleportShipments', 'TeleportToClosestCombat', 'TeleportToRandomSector', 'TeleportToTradeStation',
 )
 
@@ -146,8 +148,13 @@ hydro_values = (
 percent_values = (
     'DamageReductionPct', 'DroneShipmentBonus',
     'HydroUploadPct', 'IncreaseSectorHydroPct', 'JobPayoutIncreasePercent',
-    'MirrorDamagePct', 'SalvageHullPercent', 'SpeedIncrDuringActivation', 'SpeedIncreasePerShipment',
+    'MirrorDamagePct', 'SalvageHullPercent', 'SalvageHullPercentWS', 'SalvageHullPercentBS',
+    'SpeedIncrDuringActivation', 'SpeedIncreasePerShipment',
     'TradeBurstShipmentBonus', 'UnityBoostPercent', 'WaypointShipmentRewardBonus',
+)
+
+distance_values = (
+    'EffectRadius', 'EffectRadiusBS', 'EffectRadiusWS',
 )
 
 values_translations = {

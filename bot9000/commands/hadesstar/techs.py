@@ -212,10 +212,18 @@ class cmd_ships (Bot9000Command):
                 if blsmodscore is not None:
                     blsscore += blsmodscore
                 shipmods.append(cls.string('shipmod', player.language) % (module_names[player.language][module], modlevels[module]))
+
+            potential = potential_consumption(ship, shiplevels[ship['type']], modlevels)
             if ship['type'] == 'ship.player.battleship':
-                response += cls.string('battleship', player.language) % (ship['id'], ship['name'], ship_names[player.language][ship['type']], ', '.join(shipmods), score, wsscore, blsscore)
-            else:
-                response += cls.string('ship', player.language) % (ship['id'], ship['name'], ship_names[player.language][ship['type']], ', '.join(shipmods), score, wsscore)
+                response += cls.string('battleship', player.language) % (ship['id'], ship['name'], ship_names[player.language][ship['type']], ', '.join(shipmods), score, wsscore, blsscore, potential)
+            elif ship['type'] == 'ship.player.transport':
+                capacity = transport_capacity(shiplevels[ship['type']], modlevels['module.trade.extension'] if 'module.trade.extension' in ship['trade'] else 0)
+                bonus = (transport_bonus(ship, modlevels) - 1) * 100
+                response += cls.string('transport', player.language) % (ship['id'], ship['name'], ship_names[player.language][ship['type']], ', '.join(shipmods), score, wsscore, potential, capacity, bonus)
+            elif ship['type'] == 'ship.player.miner':
+                capacity = miner_capacity(shiplevels[ship['type']], modlevels['module.mining.extension'] if 'module.mining.extension' in ship['mining'] else 0)
+                speed = miner_speed(ship, shiplevels[ship['type']], modlevels)
+                response += cls.string('miner', player.language) % (ship['id'], ship['name'], ship_names[player.language][ship['type']], ', '.join(shipmods), score, wsscore, potential, capacity, speed)
         await bot.send_split(message.channel, response)
 
 
@@ -226,8 +234,9 @@ class cmd_ships (Bot9000Command):
             'not_same_group': 'Vous ne pouvez pas voir les vaisseaux des joueurs d\'un autre groupe',
             'unknown_player': 'Le joueur %s est inconnu',
             'introduction': '**__Vaisseaux de %s__**\n',
-            'ship': 'ID %d : **%s** (%s) : %s (%d pts, %s WS)\n',
-            'battleship': 'ID %d : **%s** (%s) : %s (%d pts, %s WS, %s EB)\n',
+            'transport': 'ID %d : **%s** (%s) : %s\n        %d pts, %s WS, %d CP15\n        %dt, %.1f%% bonus\n',
+            'miner': 'ID %d : **%s** (%s) : %s\n        %d pts, %s WS, %d CP15\n        %dH, %dH/min/roid\n',
+            'battleship': 'ID %d : **%s** (%s) : %s\n        %d pts, %s WS, %s EB, %d CP15\n',
             'shipmod': '**%s** niv. **%d**',
         }
     }

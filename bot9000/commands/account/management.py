@@ -134,6 +134,9 @@ class cmd_setchannel (Bot9000Command):
             elif arguments.identifier == 'management':
                 group.managementchannel = message.channel.id
                 await message.channel.send(cls.string('set_management_channel', player.language) % message.channel.name)
+            elif arguments.identifier == 'faq':
+                group.faqchannel = message.channel.id
+                await message.channel.send(cls.string('set_faq_channel', player.language) % message.channel.name)
             else:
                 await message.channel.send(cls.string('bad_identifier', player.language) % arguments.identifier)
             group.save()
@@ -145,6 +148,7 @@ class cmd_setchannel (Bot9000Command):
             'bad_identifier': 'L\'ID "%s" est invalide. L\'argument peut être "notifications" ou "management"',
             'set_notif_channel': 'Le channel %s sera utilisé pour envoyer les notifications relatives à l\'état de Hades9000 et les messages de bienvenue',
             'set_management_channel': 'Le channel %s sera utilisé pour les messages relatifs à l\'administration du serveur et de Hades9000',
+            'set_faq_channel': 'Le channel %s sera utilisé pour les questions/réponses',
         }
     }
 

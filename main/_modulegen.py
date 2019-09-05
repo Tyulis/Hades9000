@@ -117,6 +117,12 @@ def generate(infile, outfile):
             modules[gameids[code]] = []
             level = 1
         data = dict([data_convert(colnames[i], linedata[i]) for i in range(len(colnames)) if colnames[i] not in USELESS_COLUMNS])
+        if data['SalvageHullPercent'] is not None:
+            data['SalvageHullPercentWS'] = int(data['SalvageHullPercent'].split('!')[1])
+            data['SalvageHullPercentBS'] = int(data['SalvageHullPercent'].split('!')[2])
+            data['SalvageHullPercent'] = int(data['SalvageHullPercent'].split('!')[0])
+        else:
+            data['SalvageHullPercentWS'] = data['SalvageHullPercentBS'] = data['SalvageHullPercent'] = None
         data['Level'] = level
         level += 1
         modules[lastcode].append(data)

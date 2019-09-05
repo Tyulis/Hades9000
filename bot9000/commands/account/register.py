@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 
+import random
 import datetime
 import discord
 from django.core.exceptions import ObjectDoesNotExist
@@ -23,6 +24,7 @@ class cmd_setupgroup (Bot9000Command):
             except ObjectDoesNotExist:
                 pass
             group = CorpGroup(name=arguments.name, language=arguments.language, discordid=message.guild.id, isgroup=True)
+        group.faqcolor = random.randint(0x000000, 0xFFFFFF)
         adminrole = discord.utils.get(message.guild.roles, name=arguments.role_admin)
         if adminrole is None:
             await message.channel.send(cls.string('bad_role', arguments.language) % arguments.role_admin)
@@ -84,6 +86,7 @@ class cmd_setupcorp (Bot9000Command):
             if group.isgroup and (arguments.role_admin is not None or arguments.role_responsible is not None or arguments.role_moderator is not None):
                 await message.channel.send(cls.string('defaulting_group', language))
         else:
+            group.faqcolor = random.randint(0x000000, 0xFFFFFF)
             if arguments.language is not None:
                 group = CorpGroup(name=arguments.name, language=arguments.language, discordid=message.guild.id, isgroup=False)
             else:
@@ -229,7 +232,7 @@ class cmd_register (Bot9000Command):
             'replace_switch': '*`$register` fonctionne aussi, mais notez que comme les deux corporations font partie du même groupe, `$switch %s -u %s` permet d\'effectuer cette action plus simplement et rapidement*',
             'username_not_found': 'Le nom d\'utilisateur %s n\'a pas été trouvé sur ce serveur. Assurez-vous que le joueur est bien sur ce serveur, et qu\'il s\'agit bien de son nom d\'utilisateur ou de son surnom sur ce serveur',
             'confirm_create': 'Le compte de %s a été créé. %s, suivez les instructions envoyées en message privé pour confirmer votre compte.',
-            'instructions_create': '%s, votre compte a été créé dans la corporation %s, bienvenue dans le bel univers de Hades9000 ! Pour confirmer votre compte et renseigner vos informations, visitez %s et connectez vous avec votre pseudo %s et le mot de passe provisoire `%s`. Vous devrez obligatoirement changer ce mot de passe pour continuer. Bon jeu ^^',
+            'instructions_create': '%s, votre compte a été créé dans la corporation %s, bienvenue dans le bel univers de Hades9000 ! Pour confirmer votre compte et renseigner vos informations, visitez %s et connectez vous avec votre pseudo `%s` et le mot de passe provisoire `%s`. Vous devrez obligatoirement changer ce mot de passe pour continuer. Bon jeu ^^',
             'confirm_move': 'Le compte de %s est en déplacement dans la corporation %s. %s, connectez-vous sur votre compte pour confirmer le déplacement',
             'instructions_move': '%s, votre compte a été déplacé vers la corporation %s. Pour confirmer ce changement, visitez %s (vous pouvez aussi passer par les menus Profil > Modifier).',
         }

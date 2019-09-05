@@ -134,8 +134,8 @@ class cmd_rsshout (Bot9000Command):
 
     strings = {
         'FR': {
-            'help': '**$rsping** : Mentionne tous les joueurs de la file',
-            'description': 'Mentionne tous les joueurs de la file',
+            'help': '**$rsshout** : Mentionne les joueurs inscrits pour le niveau de votre file actuelle',
+            'description': 'Mentionne les joueurs inscrits pour le niveau de votre file actuelle',
             'no_rs': 'Vous n\'êtes dans aucune file de RS',
             'response': '%s, une RS%d va être lancée !',
         }

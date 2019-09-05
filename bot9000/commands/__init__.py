@@ -5,6 +5,7 @@ from .account import *
 from .hadesstar import *
 from .management import *
 from .utilities import *
+from .faq import *
 
 
 COMMANDS = {
@@ -58,6 +59,13 @@ COMMANDS = {
         cmd_rsqueue.name: cmd_rsqueue,
         cmd_rsready.name: cmd_rsready,
         cmd_rsunready.name: cmd_rsunready,
+        '__mandatory': False,
+    },
+    'faq': {
+        cmd_question.name: cmd_question,
+        cmd_answer.name: cmd_answer,
+        cmd_qsearch.name: cmd_qsearch,
+        cmd_qlook.name: cmd_qlook,
         '__mandatory': False,
     },
     'management': {

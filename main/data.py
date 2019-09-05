@@ -256,4 +256,48 @@ def module_score(code, level):
 	return int(((credits_score(credits) + blueprints_score(blueprints)) / 2) * (1 + rslevel / 5))
 
 def transport_capacity(tslevel, cbelevel):
-	return ship_data('ship.player.transport', tslevel, 'JobCapacity') + module_data('module.trade.extension', cbelevel, 'ExtraTradeSlots')
+	return ship_data('ship.player.transport', tslevel, 'JobCapacity') + (module_data('module.trade.extension', cbelevel, 'ExtraTradeSlots') if cbelevel != 0 else 0)
+
+def transport_bonus(ship, modlevels):
+	value = 1
+	finalbonus = 1
+	for module in ship['trade']:
+		if module == 'module.trade.computer':
+			value *= (module_data(module, modlevels[module], 'WaypointShipmentRewardBonus') / 100 + 1)
+		elif module == 'module.trade.boost':
+			finalbonus += module_data(module, modlevels[module], 'JobPayoutIncreasePercent') / 100
+		elif module == 'module.trade.burst':
+			finalbonus += module_data(module, modlevels[module], 'TradeBurstShipmentBonus') / 100
+		elif module == 'module.trade.offload':
+			finalbonus -= 1 - module_data(module, modlevels[module], 'TradeStationDeliverReward')
+	return value * finalbonus
+
+def miner_capacity(fslevel, hbelevel):
+	return ship_data('ship.player.miner', fslevel, 'HydrogenCapacity') + (module_data('module.mining.extension', hbelevel, 'ExtraMineralStorage') if hbelevel != 0 else 0)
+
+def miner_speed(ship, fslevel, modlevels):
+	speed = 6000 / ship_data(ship['type'], fslevel, 'MiningPeriod')
+	for module in ship['mining']:
+		if module in ('module.mining.boost', 'module.mining.remote'):
+			speed *= module_data(module, modlevels[module], 'MiningSpeedModifierPct')
+	return speed
+
+def potential_consumption(ship, shiplevel, modlevels):
+	passive = ship_data(ship['type'], shiplevel, 'FuelUsePer5000Distance') / 5
+	active = 0
+	for module in ship['trade'] + ship['mining'] + ship['weapon'] + ship['shield'] + ship['support']:
+		if module.endswith('.none'):
+			continue
+		if module_data(module, 1, 'ActivationType') == 'Passive':
+			passive += module_data(module, modlevels[module], 'FuelUseIncrease')
+		else:
+			perday = (24 * 3600) / module_data(module, modlevels[module], 'ActivationDelay')
+			conso = module_data(module, modlevels[module], 'ActivationFuelCost')
+			if conso is None:
+				conso = 0
+			active += perday * conso
+	speed = ship_data(ship['type'], 1, 'Speed') / 10
+	passivetotal = (passive * speed * (24 * 3600)) / 100
+	jump = ship_data(ship['type'], shiplevel, 'JumpFuelCosts') * (24 * 6 * 2)
+	total = active + passivetotal + jump
+	return total / (24 * 4)

@@ -37,23 +37,23 @@
 
             <table class="modtable"><tr>
                 {% for name in modules.trade %}{% if name != "module.trade.none" %}
-                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="10" value="{{player.getmodules|dictget:name}}" /></td>
+                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="{{modmaxlevels|dictget:name}}" value="{{player.getmodules|dictget:name}}" /></td>
                 {% endif %}{% endfor %}
             </tr><tr>
                 {% for name in modules.mining %}{% if name != "module.mining.none" %}
-                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="10" value="{{player.getmodules|dictget:name}}" /></td>
+                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="{{modmaxlevels|dictget:name}}" value="{{player.getmodules|dictget:name}}" /></td>
                 {% endif %}{% endfor %}
             </tr><tr>
                 {% for name in modules.weapon %}{% if name != "module.weapon.none" %}
-                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="10" value="{{player.getmodules|dictget:name}}" /></td>
+                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="{{modmaxlevels|dictget:name}}" value="{{player.getmodules|dictget:name}}" /></td>
                 {% endif %}{% endfor %}
             </tr><tr>
                 {% for name in modules.shield %}{% if name != "module.shield.none" %}
-                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="10" value="{{player.getmodules|dictget:name}}" /></td>
+                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="{{modmaxlevels|dictget:name}}" value="{{player.getmodules|dictget:name}}" /></td>
                 {% endif %}{% endfor %}
             </tr><tr>
                 {% for name in modules.support %}{% if name != "module.support.none" %}
-                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="10" value="{{player.getmodules|dictget:name}}" /></td>
+                    <td class="modtablecell"><div class="tooltip"><img src="{% static 'main/' %}{{name}}.png" alt="{{name}}" class="module" /><span class="tooltiptext">{{modnames|dictget:name}}</span></div><input type="number" name="{{name}}" style="width:30px;" min="0" max="{{modmaxlevels|dictget:name}}" value="{{player.getmodules|dictget:name}}" /></td>
                 {% endif %}{% endfor %}
             </tr></table>
             <h4>Vaisseaux</h4>

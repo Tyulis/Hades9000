@@ -91,6 +91,8 @@ class cmd_modinfo (Bot9000Command):
                     result += ' H'
                 elif info in percent_values:
                     result += ' %'
+                elif info in distance_values:
+                    result += ' au'
                 return result
             else:
                 return str(value)
