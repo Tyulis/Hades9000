@@ -74,6 +74,9 @@ COMMANDS = {
     },
     'utilities': {
         cmd_time.name : cmd_time,
+        cmd_afk.name: cmd_afk,
+        cmd_back.name: cmd_back,
+        cmd_isafk.name: cmd_isafk,
         '__mandatory': False,
     }
 }

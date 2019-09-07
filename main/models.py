@@ -18,8 +18,12 @@ class CorpGroup (models.Model):
 	isgroup = models.BooleanField(default=False)
 
 	notifications = models.BooleanField(default=False)
+	faqnotifs = models.BooleanField(default=False)
 	notifchannel = models.IntegerField(null=True)
 	managementchannel = models.IntegerField(null=True)
+	faqchannel = models.IntegerField(null=True)
+	afkchannels = models.TextField(default='[]')
+	faqcolor = models.IntegerField(default=0)
 	language = models.CharField(default='FR', max_length=2)
 
 	adminrole = models.IntegerField(null=True)
@@ -38,7 +42,7 @@ class CorpGroup (models.Model):
 	rs9role = models.IntegerField(null=True)
 	rs10role = models.IntegerField(null=True)
 
-	commandmodules = models.TextField(default='["help", "account"]')
+	commandmodules = models.TextField(default='["help", "account", "hadesstar"]')
 	enable_welcome = models.BooleanField(default=False)
 	enable_leavenotif = models.BooleanField(default=False)
 	private_welcome = models.BooleanField(default=True)
@@ -54,7 +58,7 @@ class CorpGroup (models.Model):
 		return [row[1] for row in ladder]
 
 	def admins(self):
-		return Player.objects.filter(corp__group__id=self.id, groupadmin=True)
+		return Player.objects.filter(corp__group__id=self.id, admin=True)
 
 	def wslist(self):
 		return WS.objects.filter(corp__group__id=self.id).order_by('-start')
@@ -70,6 +74,12 @@ class CorpGroup (models.Model):
 
 	def setcustomcommands(self, commands):
 		self.custom_commands = json.dumps(commands)
+
+	def getafkchannels(self):
+		return json.loads(self.afkchannels)
+
+	def setafkchannels(self, channels):
+		self.afkchannels = json.dumps(channels)
 
 	def rsroles(self):
 		return [self.rs1role, self.rs2role, self.rs3role, self.rs4role, self.rs5role, self.rs6role, self.rs7role, self.rs8role, self.rs9role, self.rs10role]
@@ -149,6 +159,8 @@ class Player (models.Model):
 	confirmed = models.BooleanField(default=False)
 	pendingroles = models.TextField(default='[false, false, false]')
 	rsready = models.BooleanField(default=False)
+	afkstart = models.IntegerField(default=-1)
+	afkduration = models.IntegerField(default=-1)
 
 	def stats(self, date=None):
 		if date is None:
@@ -446,6 +458,19 @@ class RedStar (models.Model):
 		return 'RS%d in %s' % (self.level, self.group.name)
 
 
+class Question (models.Model):
+	asker = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True)
+	language = models.CharField(max_length=2)
+	question = models.TextField()
+	answers = models.TextField(default='[]')
+
+	def getanswers(self):
+		return json.loads(self.answers)
+
+	def setanswers(self, answers):
+		self.answers = json.dumps(answers)
+
+
 admin.site.register(CorpGroup)
 admin.site.register(Corporation)
 admin.site.register(Player)
@@ -453,3 +478,4 @@ admin.site.register(PlayerUpdate)
 admin.site.register(WSPlayer)
 admin.site.register(WS)
 admin.site.register(RedStar)
+admin.site.register(Question)

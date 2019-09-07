@@ -1,5 +1,6 @@
 {% extends 'main/user.html' %}
 {% load static %}
+{% load dictvalues %}
 
 {% block 'content' %}
     <form action="{% url 'updategroup' %}" method="POST">
@@ -11,14 +12,18 @@
         <input type="checkbox" name="publicmembers" {% if group.publicmembers %}checked="checked"{% endif %} />Rendre la liste des membres publique<br />
         <input type="checkbox" name="publicws" {% if group.publicws %}checked="checked"{% endif %} />Rendre les WS publiques<br />
         <table class="memberstable">
-            <tr><td class="memberstablehcell">Nom</td><td class="memberstablehcell">Admin</td><td class="memberstablehcell">Expulsion</td></tr>
+            <tr><td class="memberstablehcell">Nom</td><td class="memberstablehcell">Expulsion</td></tr>
             {% for member in group.members %}
                 <tr><td class="memberstablecell">{{member.name}}</td>
-                    <td class="memberstablecell"><input type="checkbox" name="{{member.id}}_admin" {% if member.admin %}checked="checked"{% endif %}/></td>
                     <td class="memberstablecell"><input type="submit" name="{{member.id}}_kick" value="Expulser" /></td>
                 </tr>
             {% endfor %}
         </table>
+        <h4>Modules de commandes</h4>
+        <ul>
+        {% for module in cmdmodules.keys %}
+            <li><input type="checkbox" name="cmdmod_{{module}}" {% if module in groupmodules %}checked="checked"{% endif %} {% if cmdmodules|dictget:module|dictget:"__mandatory" %}disabled="disabled"{% endif %} />{{module}}</li>
+        {% endfor %}
         <input type="submit" name="save" value="Enregistrer" /><br />
     </form>
 {% endblock 'content' %}

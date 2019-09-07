@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 
+import time
 import shlex
 import argparse
 import secrets
@@ -51,14 +52,41 @@ class Hades9000Bot (discord.Client):
     async def on_message(self, message):
         if message.author == self.user:
             return
+        try: group = CorpGroup.objects.get(discordid=message.guild.id)
+        except ObjectDoesNotExist: group = dummygp
+        try: player = Player.objects.get(discordid=message.author.id)
+        except ObjectDoesNotExist:
+            player = dummygp
+            player.language = group.language
+
         if message.content.strip().startswith('$'):
-            try: group = CorpGroup.objects.get(discordid=message.guild.id)
-            except ObjectDoesNotExist: group = dummygp
-            try: player = Player.objects.get(discordid=message.author.id)
-            except ObjectDoesNotExist:
-                player = dummygp
-                player.language = group.language
             await self.run_command(message, group, player)
+        elif len(message.mentions) > 0 and player.discordid is not None and group.discordid is not None:
+            if player.corp in group.corporations() and message.channel.id in group.getafkchannels():
+                for mentionned in message.mentions:
+                    try:
+                        target = Player.objects.get(discordid = mentionned.id)
+                    except ObjectDoesNotExist:
+                        continue
+                    if target.afkstart == -1 and target.afkduration == -1:
+                        continue
+                    elif target.afkstart + target.afkduration > time.time():
+                        remaining = target.afkstart + target.afkduration - time.time()
+                        days = remaining // (60 * 60 * 24)
+                        remaining %= (60 * 60 * 24)
+                        hours = remaining // (60 * 60)
+                        remaining %= (60 * 60)
+                        minutes = remaining // 60
+                        await message.channel.send(self.string('afk', player.language) % (target.name, days, hours, minutes))
+                    else:
+                        excess = time.time() - (target.afkstart + target.afkduration)
+                        days = excess // (60 * 60 * 24)
+                        excess %= (60 * 60 * 24)
+                        hours = excess // (60 * 60)
+                        excess %= (60 * 60)
+                        minutes = excess // 60
+                        await message.channel.send(self.string('still_afk', player.language) % (target.name, days, hours, minutes))
+
 
     async def on_message_edit(self, before, after):
         if after.author == self.user:
@@ -293,5 +321,9 @@ class Hades9000Bot (discord.Client):
             'inactive_command': 'La commande "%s" est dans le module `%s`, qui est désactivé pour ce serveur. Utilisez `$togglemodule %s` pour l\'activer',
             'bad_arguments': 'Arguments invalides pour la commande "%s"',
             'permission_denied': 'Vous n\'avez pas les permissions nécéssaires pour effectuer cette action. Rôle minimal : %s',
+
+            'not_afk': '%s n\'est pas AFK',
+            'afk': '%s est encore indiqué AFK pour %d jours, %d heures, %d minutes',
+            'still_afk': '%s est AFK, et a indiqué revenir il y a %d jours, %d heures, %d minutes',
         }
     }

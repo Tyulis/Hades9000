@@ -9,6 +9,7 @@ from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
 from main.models import *
 from .account import *
+from bot9000.commands import COMMANDS
 
 
 def corporation(request, corpname, error=None):
@@ -181,6 +182,7 @@ def editgroup(request, error=None):
 		return HttpResponseRedirect('/editcorp')
 	data = {
 		'player': player, 'group': group, 'error': error,
+		'cmdmodules': COMMANDS, 'groupmodules': group.getcommandmods(),
 	}
 	return render(request, 'main/editgroup.html', data)
 
@@ -203,9 +205,16 @@ def updategroup(request, error=None):
 	group.publicmembers = 'publicmembers' in request.POST
 	group.publicws = 'publicws' in request.POST
 	for member in group.members():
-		member.admin = '%s_admin' % member.id in request.POST
 		if '%s_kick' % member.id in request.POST:
 			member.corp = None
 		member.save()
+	cmdmods = []
+	for module in COMMANDS.keys():
+		if 'cmdmod_%s' % module in request.POST:
+			cmdmods.append(module)
+	if 'account' not in cmdmods: cmdmods.append('account')
+	if 'help' not in cmdmods: cmdmods.append('help')
+	if 'hadesstar' not in cmdmods: cmdmods.append('hadesstar')
+	group.setcommandmods(cmdmods)
 	group.save()
 	return HttpResponseRedirect('/group/%s' % group.name)

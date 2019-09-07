@@ -137,18 +137,30 @@ class cmd_setchannel (Bot9000Command):
             elif arguments.identifier == 'faq':
                 group.faqchannel = message.channel.id
                 await message.channel.send(cls.string('set_faq_channel', player.language) % message.channel.name)
+            elif arguments.identifier == 'afk':
+                channels = group.getafkchannels()
+                if message.channel.id in channels:
+                    channels.remove(message.channel.id)
+                    await message.channel.send(cls.string('unset_afk_channel', player.language) % message.channel.name)
+                else:
+                    channels.append(message.channel.id)
+                    await message.channel.send(cls.string('set_afk_channel', player.language) % message.channel.name)
+                group.setafkchannels(channels)
+                group.save()
             else:
                 await message.channel.send(cls.string('bad_identifier', player.language) % arguments.identifier)
             group.save()
 
     strings = {
         'FR':{
-            'help': '**$setchannel <id>** : Enregistre le channel pour un usage particulier. <id> peut être "notifications" pour le channel où seront publiées les notifications sur l\'état de Hades9000, "management" pour le channel réservé à l\'administration du serveur',
+            'help': '**$setchannel <id>** : Enregistre le channel pour un usage particulier. <id> peut être "notifications" pour le channel où seront publiées les notifications sur l\'état de Hades9000, "management" pour le channel réservé à l\'administration du serveur, "faq" pour les questions/réponses, ou "afk" pour changer si le channel peut être utilisé pour les notifications AFK ou pas',
             'description': 'Spécifie un salon pour certains usages spécifiques',
-            'bad_identifier': 'L\'ID "%s" est invalide. L\'argument peut être "notifications" ou "management"',
+            'bad_identifier': 'L\'ID "%s" est invalide. L\'argument peut être "notifications", "management", "faq", "afk"',
             'set_notif_channel': 'Le channel %s sera utilisé pour envoyer les notifications relatives à l\'état de Hades9000 et les messages de bienvenue',
             'set_management_channel': 'Le channel %s sera utilisé pour les messages relatifs à l\'administration du serveur et de Hades9000',
             'set_faq_channel': 'Le channel %s sera utilisé pour les questions/réponses',
+            'set_afk_channel': 'Les informations d\'absences pourront être affichées dans le channel %s',
+            'unset_afk_channel': 'Les informations d\'absences ne pourront plus être affichées dans le channel %s',
         }
     }
 
