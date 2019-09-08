@@ -147,6 +147,9 @@ class cmd_setchannel (Bot9000Command):
                     await message.channel.send(cls.string('set_afk_channel', player.language) % message.channel.name)
                 group.setafkchannels(channels)
                 group.save()
+            elif arguments.identifier == 'rs':
+                group.rschannel = message.channel.id
+                await message.channel.send(cls.string('set_rs_channel', player.language) % message.channel.name)
             else:
                 await message.channel.send(cls.string('bad_identifier', player.language) % arguments.identifier)
             group.save()
@@ -159,6 +162,7 @@ class cmd_setchannel (Bot9000Command):
             'set_notif_channel': 'Le channel %s sera utilisé pour envoyer les notifications relatives à l\'état de Hades9000 et les messages de bienvenue',
             'set_management_channel': 'Le channel %s sera utilisé pour les messages relatifs à l\'administration du serveur et de Hades9000',
             'set_faq_channel': 'Le channel %s sera utilisé pour les questions/réponses',
+            'set_rs_channel': 'Le channel %s sera utilisé pour la coordination des étoiles rouges',
             'set_afk_channel': 'Les informations d\'absences pourront être affichées dans le channel %s',
             'unset_afk_channel': 'Les informations d\'absences ne pourront plus être affichées dans le channel %s',
         }

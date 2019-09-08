@@ -52,13 +52,15 @@ COMMANDS = {
         '__mandatory': False,
     },
     'redstar': {
+        cmd_rslist.name: cmd_rslist,
         cmd_rsin.name: cmd_rsin,
         cmd_rsout.name: cmd_rsout,
         cmd_rsshout.name: cmd_rsshout,
-        cmd_rsping.name: cmd_rsping,
         cmd_rsqueue.name: cmd_rsqueue,
         cmd_rsready.name: cmd_rsready,
         cmd_rsunready.name: cmd_rsunready,
+        cmd_rsmsg.name: cmd_rsmsg,
+        cmd_rskick.name: cmd_rskick,
         '__mandatory': False,
     },
     'faq': {

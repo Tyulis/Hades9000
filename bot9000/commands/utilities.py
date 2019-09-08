@@ -78,7 +78,7 @@ class cmd_afk (Bot9000Command):
     strings = {
         'FR': {
             'help': '**$afk <temps> : Vous spécifie absent pour un certain temps. Le temps doit avoir le format `2j2h2m`, `1j`, `3h20m`, ou autres combinaisons',
-            'description': '$afk <temps> : Vous spécifie absent pour un certain temps',
+            'description': 'Vous spécifie absent pour un certain temps',
             'bad_time_format': 'Le temps doit être dans le format `2j2h2m`',
             'done': '%s est AFK pour %d jours, %d heures, %d minutes',
         }

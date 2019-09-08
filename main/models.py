@@ -438,15 +438,22 @@ class WSPlayer (models.Model):
 
 
 class RedStar (models.Model):
-	group = models.ForeignKey(CorpGroup, on_delete=models.CASCADE)
+	corp = models.ForeignKey(Corporation, on_delete=models.CASCADE)
 	player1 = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, related_name='player1')
 	player2 = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, related_name='player2')
 	player3 = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, related_name='player3')
 	player4 = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, related_name='player4')
+	channels = models.TextField(default='[-1, -1, -1, -1]')
 	level = models.IntegerField(default=1)
 
 	def players(self):
 		return [player for player in (self.player1, self.player2, self.player3, self.player4) if player is not None]
+
+	def getchannels(self):
+		return json.loads(self.channels)
+
+	def setchannels(self, channels):
+		self.channels = json.dumps(channels)
 
 	def resetplayers(self):
 		self.player1 = None
@@ -454,8 +461,41 @@ class RedStar (models.Model):
 		self.player3 = None
 		self.player4 = None
 
-	def __str__(self):
-		return 'RS%d in %s' % (self.level, self.group.name)
+	def addplayer(self, player, channel):
+		channels = self.getchannels()
+		if self.player1 is None:
+			self.player1 = player
+			channels[0] = channel.id
+		elif self.player2 is None:
+			self.player2 = player
+			channels[1] = channel.id
+		elif self.player3 is None:
+			self.player3 = player
+			channels[2] = channel.id
+		elif self.player4 is None:
+			self.player4 = player
+			channels[3] = channel.id
+		else:
+			raise ValueError('RS already full')
+		self.setchannels(channels)
+
+	def removeplayer(self, player):
+		channels = self.getchannels()
+		if self.player1 == player:
+			self.player1 = None
+			channels[0] = -1
+		elif self.player2 == player:
+			self.player2 = None
+			channels[1] = -1
+		elif self.player3 == player:
+			self.player3 = None
+			channels[3] = -1
+		elif self.player4 == player:
+			self.player4 = None
+			channels[3] = -1
+		else:
+			raise ValueError('Player not in RS')
+		self.setchannels(channels)
 
 
 class Question (models.Model):
