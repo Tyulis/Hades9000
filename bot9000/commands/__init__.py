@@ -27,6 +27,7 @@ COMMANDS = {
         cmd_togglemodule.name: cmd_togglemodule,
         cmd_groupinfo.name: cmd_groupinfo,
         cmd_corpinfo.name: cmd_corpinfo,
+        cmd_setginfo.name: cmd_setginfo,
         cmd_update.name: cmd_update,
         '__mandatory': True,
     },

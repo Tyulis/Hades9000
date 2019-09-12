@@ -1,5 +1,6 @@
 {% extends 'main/user.html' %}
 {% load static %}
+{% load dictvalues %}
 
 {% block 'content' %}
     <form action="{% url 'updatecorp' corp.name %}" method="POST">
@@ -7,7 +8,7 @@
         <input type="text" name="name" value="{{corp.name}}" placeholder="Nom de la corporation" /><br />
         Reliques : <input type="number" name="relics" value="{{corp.relics}}" min="0" max="100000" /><br />
         <input {% if corp.group.isgroup %}disabled="disabled"{% endif %} type="url" name="discordlink" value="{{corp.discordlink}}" placeholder="Lien discord" /><br />
-        <input {% if corp.group.isgroup %}disabled="disabled"{% endif %} type="url" name="discordid" value="{{corp.discordid}}" placeholder="ID du serveur discord" /><br />
+        <input disabled="disabled" type="text" name="discordid" value="{{corp.discordid}}" placeholder="ID du serveur discord" /><br />
         <input {% if corp.group.isgroup %}disabled="disabled"{% endif %} type="checkbox" name="publiclink" {% if corp.publiclink %}checked="checked"{% endif %} />Rendre le lien discord public<br />
         <input {% if corp.group.isgroup %}disabled="disabled"{% endif %} type="checkbox" name="publicmembers" {% if corp.publicmembers %}checked="checked"{% endif %} />Rendre la liste des membres publique<br />
         <input {% if corp.group.isgroup %}disabled="disabled"{% endif %} type="checkbox" name="publicws" {% if corp.publicws %}checked="checked"{% endif %} />Rendre les WS publiques<br />
@@ -20,6 +21,11 @@
                 </tr>
             {% endfor %}
         </table>
+        <h4>Modules de commandes</h4>
+        <ul>
+        {% for module in cmdmodules.keys %}
+            <li><input type="checkbox" name="cmdmod_{{module}}" {% if module in groupmodules %}checked="checked"{% endif %} {% if cmdmodules|dictget:module|dictget:"__mandatory" %}disabled="disabled"{% endif %} />{{module}}</li>
+        {% endfor %}
         <input type="submit" name="save" value="Enregistrer" /><br />
         {% if corp.group.isgroup %}
             <input type="submit" name="save_editgroup" value="Enregistrer et modifier le groupe" /><br />

@@ -29,7 +29,7 @@ class cmd_question (Bot9000Command):
                 embed = discord.Embed(
                     title = cls.string('question_title', question.language) % question.id,
                     description = question.question,
-                    color = question.asker.corp.group.faqcolor,
+                    color = question.asker.corp.group.color,
                 )
                 embed.set_author(name=player.name, icon_url=message.author.avatar_url)
                 await channel.send(embed=embed)
@@ -73,7 +73,7 @@ class cmd_answer (Bot9000Command):
         qembed = discord.Embed(
             title = cls.string('question_title', question.asker.language) % question.id,
             description = question.question,
-            color = question.asker.corp.group.faqcolor,
+            color = question.asker.corp.group.color,
         )
         askuser = discord.utils.get(askguild.members, id=question.asker.discordid)
         qembed.set_author(name=question.asker.name, icon_url=askuser.avatar_url)
@@ -85,7 +85,7 @@ class cmd_answer (Bot9000Command):
             aembed = discord.Embed(
                 title = cls.string('answer_title', question.asker.language) % (question.id, i),
                 description = answer[1],
-                color = ansplayer.corp.group.faqcolor,
+                color = ansplayer.corp.group.color,
             )
             ansuser = discord.utils.get(ansguild.members, id=ansplayer.discordid)
             aembed.set_author(name=ansplayer.name, icon_url=ansuser.avatar_url)
@@ -137,7 +137,7 @@ class cmd_qsearch (Bot9000Command):
             qembed = discord.Embed(
                 title = cls.string('question_title', player.language) % question.id,
                 description = question.question,
-                color = question.asker.corp.group.faqcolor,
+                color = question.asker.corp.group.color,
             )
             askuser = discord.utils.get(askguild.members, id=question.asker.discordid)
             qembed.set_author(name=question.asker.name, icon_url=askuser.avatar_url)
@@ -181,16 +181,15 @@ class cmd_qlook (Bot9000Command):
             await message.channel.send(cls.string('bad_question_id', player.language) % questionid)
             return
 
-        askguild = discord.utils.get(bot.guilds, id=question.asker.corp.group.discordid)
-        channel = discord.utils.get(askguild.channels, id=question.asker.corp.group.faqchannel)
+        askguild = discord.utils.get(bot.guilds, id=group.discordid)
         qembed = discord.Embed(
             title = cls.string('question_title', player.language) % question.id,
             description = question.question,
-            color = question.asker.corp.group.faqcolor,
+            color = question.asker.corp.group.color,
         )
         askuser = discord.utils.get(askguild.members, id=question.asker.discordid)
         qembed.set_author(name=question.asker.name, icon_url=askuser.avatar_url)
-        await channel.send(embed=qembed)
+        await message.channel.send(embed=qembed)
 
         answers = question.getanswers()
         for i, answer in enumerate(answers):
@@ -199,11 +198,11 @@ class cmd_qlook (Bot9000Command):
             aembed = discord.Embed(
                 title = cls.string('answer_title', player.language) % (question.id, i),
                 description = answer[1],
-                color = ansplayer.corp.group.faqcolor,
+                color = ansplayer.corp.group.color,
             )
             ansuser = discord.utils.get(ansguild.members, id=ansplayer.discordid)
             aembed.set_author(name=ansplayer.name, icon_url=ansuser.avatar_url)
-            await channel.send(embed=aembed)
+            await message.channel.send(embed=aembed)
 
     strings = {
         'FR': {

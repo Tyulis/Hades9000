@@ -45,7 +45,7 @@ def editcorp(request, corpname, error=None):
 		return corporation(request, player.corp.name, error='Vous n\'avez pas la permission d\'accéder à cette page')
 	data = {
 		'title': 'Hades9000 : Modification de la corporation', 'error': error,
-		'corp': corp, 'player': player,
+		'corp': corp, 'player': player, 'cmdmodules': COMMANDS, 'groupmodules': corp.group.getcommandmods(),
 	}
 	return render(request, 'main/editcorp.html', data)
 
@@ -66,7 +66,7 @@ def updatecorp(request, corpname):
 		return corporation(request, player.corp.name, error='Requête invalide')
 	corp.name = request.POST.get('name')
 	corp.relics = int(request.POST.get('relics'))
-	if not corpo.group.isgroup:
+	if not corp.group.isgroup:
 		corp.group.discordlink = request.POST.get('discordlink')
 		corp.group.publiclink = 'publiclink' in request.POST
 		corp.group.publicmembers = 'publicmembers' in request.POST
@@ -76,6 +76,14 @@ def updatecorp(request, corpname):
 		if '%s_kick' % member.id in request.POST:
 			member.corp = None
 		member.save()
+	cmdmods = []
+	for module in COMMANDS.keys():
+		if 'cmdmod_%s' % module in request.POST:
+			cmdmods.append(module)
+	if 'account' not in cmdmods: cmdmods.append('account')
+	if 'help' not in cmdmods: cmdmods.append('help')
+	if 'hadesstar' not in cmdmods: cmdmods.append('hadesstar')
+	corp.group.setcommandmods(cmdmods)
 	corp.save()
 	corp.group.save()
 	if 'save_editgroup' in request.POST:

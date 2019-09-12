@@ -366,26 +366,37 @@ class _cmd_global_redstar (Bot9000Command):
     @classmethod
     async def print_rsqueue(cls, rs, bot, shout):
         channels = rs.getchannels()
+        queues = rs.getqueues()
         for i, player in enumerate(rs.players()):
             guild = discord.utils.get(bot.guilds, id=player.corp.group.discordid)
             channel = discord.utils.get(guild.channels, id=channels[i])
-            if player.corp.group.rs8role is not None and shout:
-                role = discord.utils.get(guild.roles, id=player.corp.group.rs8role)
+            roleid = player.corp.group.rsroles()[rs.level]
+            if roleid is not None and shout:
+                role = discord.utils.get(guild.roles, id=roleid)
                 result = cls.string('introduction', player.language) % (role.mention, rs.id + 100, rs.corp.name)
             else:
                 result = cls.string('introduction', player.language) % ('RS%d' % rs.level, rs.id + 100, rs.corp.name)
             for j, rsplayer in enumerate(rs.players()):
                 result += cls.string('line', player.language) % ((':white_check_mark:' if rsplayer.rsready else ':black_square_button:'), j + 1, rsplayer.corp.group.name, rsplayer.name)
-            await channel.send(result)
+            queuemsg = await channel.send(result)
+            latestid = queues[i]
+            if latestid >= 0:
+                latest = await channel.fetch_message(latestid)
+                await latest.delete()
+            queues[i] = queuemsg.id
+        rs.setqueues(queues)
+        rs.save()
+
 
     @classmethod
     async def rsqueue_full(cls, rs, bot):
         channels = rs.getchannels()
         for i, player in enumerate(rs.players()):
-            guild = discord.utils.get(bot.guilds, id=player.corp.group.discordid)
-            channel = discord.utils.get(guild.channels, id=channels[i])
-            discorduser = discord.utils.get(guild.members, id=player.discordid)
-            await channel.send(cls.string('full', player.language) % (discorduser.mention))
+            if not player.rsready:
+                guild = discord.utils.get(bot.guilds, id=player.corp.group.discordid)
+                channel = discord.utils.get(guild.channels, id=channels[i])
+                discorduser = discord.utils.get(guild.members, id=player.discordid)
+                await channel.send(cls.string('full', player.language) % (discorduser.mention))
 
     @classmethod
     async def run_rs(cls, rs, bot):
@@ -480,7 +491,7 @@ class cmd_rsin (Bot9000Command):
             except ObjectDoesNotExist:
                 await message.channel.send(cls.string('bad_id', player.language) % id)
                 return
-            if rs.level > player.rslevel:
+            if rs.level > player.rslevel():
                 await message.channel.send(cls.string('higher_level', player.language) % (rs.level, player.rslevel()))
                 return
             rs.addplayer(player, message.channel)
@@ -573,16 +584,16 @@ class cmd_rsready (Bot9000Command):
         except ObjectDoesNotExist:
             await message.channel.send(cls.string('not_in_rs', player.language))
             return
-        if not any([player.rsready for player in rs.players()]):
-            await _cmd_global_redstar.rsqueue_full(rs, bot)
         player.rsready = True
         player.save()
+        if len([rsplayer for rsplayer in rs.players() if rsplayer.rsready]) == 1 and len(rs.players()) > 1:
+            await _cmd_global_redstar.rsqueue_full(rs, bot)
         await _cmd_global_redstar.print_rsqueue(rs, bot, False)
-        if all([player.rsready for player in rs.players()]):
+        if all([rsplayer.rsready for rsplayer in rs.players()]):
             await _cmd_global_redstar.run_rs(rs, bot)
-            for player in rs.players():
-                player.rsready = False
-                player.save()
+            for rsplayer in rs.players():
+                rsplayer.rsready = False
+                rsplayer.save()
             rs.delete()
 
     strings = {

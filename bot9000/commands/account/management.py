@@ -1,10 +1,11 @@
 # -*- coding:utf-8 -*-
-
+import re
 import discord
 from django.core.exceptions import ObjectDoesNotExist
 from main.models import *
 from ..base import Bot9000Command
 
+color_re = re.compile('\#[0-9a-fA-F]{6}')
 
 class cmd_switch (Bot9000Command):
     name = 'switch'
@@ -381,6 +382,11 @@ class cmd_groupinfo (Bot9000Command):
             response += cls.string('managementchannel', player.language) % managementchannel.mention
         else:
             response += cls.string('no_managementchannel', player.language)
+        faqchannel = discord.utils.get(message.guild.channels, id=group.faqchannel)
+        if notifchannel is not None:
+            response += cls.string('faqchannel', player.language) % (faqchannel.mention, cls.string('activated' if group.faqnotifs else 'desactivated', player.language))
+        else:
+            response += cls.string('no_faqchannel', player.language)
         custom = group.getcustomcommands()
         if len(custom) > 0:
             response += cls.string('customcommands', player.language) % ', '.join(custom.keys())
@@ -401,6 +407,8 @@ class cmd_groupinfo (Bot9000Command):
             'no_notifchannel': '*Pas de salon pour les notifications*\n',
             'activated': 'activé',
             'desactivated': 'désactivé',
+            'faqchannel': '__Salon FAQ__ : %s *(%s)*\n',
+            'no_faqchannel': '*Pas de channel FAQ*\n',
             'managementchannel': '__Salon d\'administration__ : %s\n',
             'no_managementchannel': '*Pas de salon d\'administration*\n',
             'customcommands': '__Commandes custom__ : %s\n',
@@ -460,5 +468,44 @@ class cmd_update (Bot9000Command):
             'help': '**$update** : Met à jour les informations du groupe',
             'description': 'Met à jour les informations du groupe',
             'done': 'Les informations ont été rechargées',
+        }
+    }
+
+
+class cmd_setginfo (Bot9000Command):
+    name = 'setginfo'
+    minimum_role = 'responsible'
+    arguments = ('id', '?value|v')
+    parser = None
+
+    @classmethod
+    async def run(cls, message, arguments, group, player, bot):
+        if arguments.id == 'invite':
+            group.invite = arguments.value
+            await message.channel.send(cls.string('invite_changed', player.language) % arguments.value)
+        elif arguments.id == 'faqnotifs':
+            group.faqnotifs = not group.faqnotifs
+            await message.channel.send(cls.string('enabled_faqnotifs' if group.faqnotifs else 'disabled_faqnotifs', player.language))
+        elif arguments.id == 'color':
+            if re.match(color_re, arguments.value) is None:
+                await message.channel.send(cls.string('bad_color_format', player.language))
+                return
+            group.color = int(arguments.value.strip('#'), 16)
+            embed = discord.Embed(color=group.color, title=cls.string('color_changed', player.language) % arguments.value)
+            await message.channel.send(embed=embed)
+        else:
+            await message.channel.send(cls.string('bad_id', player.language) % arguments.id)
+        group.save()
+
+    strings = {
+        'FR': {
+            'help': '**$setginfo <identifiant> [<valeur>]** : Modifie une information du groupe. Les identifiants sont :\n- `invite` : Permet de changer le lien d\'invitation du serveur\n- `faqnotifs` : change si les questions posées sur d\'autres serveurs sont transmises sur celui-ci\n- `color` : Change la couleur du groupe, avec le format `#RRGGBB`',
+            'description': 'Modifie une information du groupe',
+            'bad_id': 'L\'identifiant %s est invalide. Les identifiants utilisables sont `invite`, `faqnotifs`, `color`',
+            'invite_changed': 'L\'invitation à ce serveur est maintenant : %s',
+            'enabled_faqnotifs': 'Les notifications pour les questions posées sur d\'autres serveurs sont maintenant **activées**',
+            'disabled_faqnotifs': 'Les notifications pour les questions posées sur d\'autres serveurs sont maintenant **désactivées**',
+            'bad_color_format': 'La couleur doit être dans le format `#RRGGBB`',
+            'color_changed': 'La couleur du groupe a été modifiée pour %s',
         }
     }

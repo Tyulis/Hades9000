@@ -23,7 +23,7 @@ class CorpGroup (models.Model):
 	managementchannel = models.IntegerField(null=True)
 	faqchannel = models.IntegerField(null=True)
 	afkchannels = models.TextField(default='[]')
-	faqcolor = models.IntegerField(default=0)
+	color = models.IntegerField(default=0)
 	language = models.CharField(default='FR', max_length=2)
 
 	adminrole = models.IntegerField(null=True)
@@ -42,7 +42,7 @@ class CorpGroup (models.Model):
 	rs9role = models.IntegerField(null=True)
 	rs10role = models.IntegerField(null=True)
 
-	commandmodules = models.TextField(default='["help", "account", "hadesstar"]')
+	commandmodules = models.TextField(default='["help", "account", "hadesstar", "redstar", "whitestar", "management", "utilities", "faq"]')
 	enable_welcome = models.BooleanField(default=False)
 	enable_leavenotif = models.BooleanField(default=False)
 	private_welcome = models.BooleanField(default=True)
@@ -82,7 +82,7 @@ class CorpGroup (models.Model):
 		self.afkchannels = json.dumps(channels)
 
 	def rsroles(self):
-		return [self.rs1role, self.rs2role, self.rs3role, self.rs4role, self.rs5role, self.rs6role, self.rs7role, self.rs8role, self.rs9role, self.rs10role]
+		return [-1, self.rs1role, self.rs2role, self.rs3role, self.rs4role, self.rs5role, self.rs6role, self.rs7role, self.rs8role, self.rs9role, self.rs10role]
 
 	def __str__(self):
 		return 'CorpGroup %s' % self.name
@@ -444,6 +444,7 @@ class RedStar (models.Model):
 	player3 = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, related_name='player3')
 	player4 = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, related_name='player4')
 	channels = models.TextField(default='[-1, -1, -1, -1]')
+	latestqueues = models.TextField(default='[-1, -1, -1, -1]')
 	level = models.IntegerField(default=1)
 
 	def players(self):
@@ -496,6 +497,12 @@ class RedStar (models.Model):
 		else:
 			raise ValueError('Player not in RS')
 		self.setchannels(channels)
+
+	def getqueues(self):
+		return json.loads(self.latestqueues)
+
+	def setqueues(self, queues):
+		self.latestqueues = json.dumps(queues)
 
 
 class Question (models.Model):

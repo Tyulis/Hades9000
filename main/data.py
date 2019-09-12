@@ -301,3 +301,10 @@ def potential_consumption(ship, shiplevel, modlevels):
 	jump = ship_data(ship['type'], shiplevel, 'JumpFuelCosts') * (24 * 6 * 2)
 	total = active + passivetotal + jump
 	return total / (24 * 4)
+
+def ship_value(ship, shiplevel, modlevels):
+	value = ship_data(ship['type'], shiplevel, 'BuildCost')
+	for module in ship['trade'] + ship['mining'] + ship['weapon'] + ship['shield'] + ship['support']:
+		if not module.endswith('.none'):
+			value += module_data(module, modlevels[module], 'BCCost')
+	return value

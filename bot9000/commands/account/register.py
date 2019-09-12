@@ -159,7 +159,7 @@ class cmd_register (Bot9000Command):
             corpname = arguments.corporation
         else:
             if not group.isgroup:
-                corpname = group.corps()[0].name
+                corpname = group.corporations()[0].name
             else:
                 await message.channel.send(cls.string('choose_corp', language))
                 return
